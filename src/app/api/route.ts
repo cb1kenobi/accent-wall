@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const width = parseFloat(searchParams.get('width') || '153.25');
   const height = parseFloat(searchParams.get('height') || '90');
   const boardSpacing = parseFloat(searchParams.get('spacing') || '.75');
-  const boardWidth = parseFloat(searchParams.get('boardWidth') || '2.75');
+  const boardWidth = parseFloat(searchParams.get('boardWidth') || '2.5');
   const numberOfBoards = Math.floor((width + boardSpacing) / (boardWidth + boardSpacing));
   const left = (width - (numberOfBoards * boardWidth) - ((numberOfBoards - 1) * boardSpacing)) / 2;
 
