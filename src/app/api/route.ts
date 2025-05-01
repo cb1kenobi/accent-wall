@@ -156,7 +156,7 @@ export async function GET(request: Request) {
         y += segment.length;
         return path;
       }).join('')
-    }).join('')}w
+    }).join('')}
   </svg>`;
 
   return new NextResponse(svg, {

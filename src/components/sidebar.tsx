@@ -7,33 +7,27 @@ function numberOfBoards(width: number, spacing: number, boardWidth: number) {
 }
 
 interface SidebarProps {
-  onColumnsChange: (columns: number) => void;
-  setSeed: (seed: number) => void;
+  onFormChange: (formValues: FormValues) => void;
+  onNewSeed: (seed: number) => void;
 }
 
-interface FormValues {
+export interface FormValues {
     width: number;
     height: number;
     spacing: number;
     boardWidth: number;
 }
 
-export function Sidebar({ onColumnsChange, setSeed }: SidebarProps) {
+export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
   const [formValues, setFormValues] = React.useState<FormValues>({
     width: 153.25,
-    height: 90,
+    height: 96,
     spacing: 0.75,
     boardWidth: 2.5
   });
 
   React.useEffect(() => {
-    // Set initial columns value
-    const initialColumns = numberOfBoards(
-      formValues.width,
-      formValues.spacing,
-      formValues.boardWidth
-    );
-    onColumnsChange(initialColumns);
+    onFormChange(formValues);
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,16 +38,7 @@ export function Sidebar({ onColumnsChange, setSeed }: SidebarProps) {
       [name]: Math.max(numValue, 0.125)
     };
     setFormValues(newValues);
-
-    // If width, spacing, or boardWidth changed, recalculate columns
-    if (['width', 'spacing', 'boardWidth'].includes(name)) {
-      const calculatedColumns = numberOfBoards(
-        newValues.width,
-        newValues.spacing,
-        newValues.boardWidth
-      );
-      onColumnsChange(calculatedColumns);
-    }
+    onFormChange(newValues);
   };
 
   const handleNewSeed = () => {
@@ -61,11 +46,11 @@ export function Sidebar({ onColumnsChange, setSeed }: SidebarProps) {
     const params = new URLSearchParams(window.location.search);
     params.set('seed', newSeed.toString());
     window.history.replaceState({}, '', `?${params.toString()}`);
-    setSeed(newSeed);
+    onNewSeed(newSeed);
   }
 
   return (
-    <div className="flex flex-col gap-y-2">
+    <div className="flex flex-col gap-y-2 w-32">
       <div className="flex flex-col gap-y-2">
         <div className="flex flex-col">
           <div className="flex gap-x-2">
