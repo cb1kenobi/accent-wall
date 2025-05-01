@@ -57,6 +57,7 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
     columnId++;
   }
 
+  let boardCount = 0;
   const boards = Object.values(boardsMap).sort((a, b) => b.length - a.length);
   const cutlist: CutlistBoard[] = [];
   let squareFeet = 0;
@@ -75,20 +76,25 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
         start: board.start,
         end: board.end,
       });
+      boardCount++;
       squareFeet += board.length * boardWidth / 144;
     }
   }
-  const boardsPerSheet = Math.floor(48.125 / (boardWidth + 0.125));
+
+  const kerf = 0.125;
+  const extra = 1;
+  const boardsPerSheet = Math.floor((48 + kerf - extra) / (boardWidth + kerf));
   const sheetsNeeded = Math.ceil(cutlist.length / boardsPerSheet);
 
   return (
     <div>
       <h4 className="text-lg font-bold">Preview</h4>
-      <div className="p-1 bg-white">
+      <div className="p-1">
         <svg
           width="1024"
           height={1024 * (height/width)}
           viewBox={`0 0 ${width} ${height}`}
+          className="border-2 border-gray-300"
           xmlns="http://www.w3.org/2000/svg">
           <rect
             x="0"
@@ -158,9 +164,11 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
       </div>
       <h4 className="text-lg font-bold mt-2">Cutlist</h4>
       <div className="text-xs">
-        <div><label className="w-10 font-bold">Boards needed:</label> {cutlist.length}</div>
         <div><label className="w-10 font-bold">Square feet:</label> {squareFeet.toFixed(2)}</div>
+        <div><label className="w-10 font-bold">Boards needed:</label> {boardCount}</div>
+        <div><label className="w-10 font-bold">8' strips needed:</label> {cutlist.length}</div>
         <div><label className="w-10 font-bold">Sheets needed:</label> {sheetsNeeded}</div>
+        <div><label className="w-10 font-bold">Blade kerf:</label> {kerf}"</div>
       </div>
       {cutlist.map((board, i) => {
         let left = 0;
