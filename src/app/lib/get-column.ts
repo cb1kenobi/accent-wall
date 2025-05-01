@@ -1,3 +1,5 @@
+'use client';
+
 import seedrandom from 'seedrandom';
 
 interface Segment {

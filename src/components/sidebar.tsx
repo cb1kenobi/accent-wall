@@ -2,10 +2,6 @@
 
 import React from 'react';
 
-function numberOfBoards(width: number, spacing: number, boardWidth: number) {
-  return Math.floor((width + spacing) / (boardWidth + spacing));
-}
-
 interface SidebarProps {
   onFormChange: (formValues: FormValues) => void;
   onNewSeed: (seed: number) => void;
@@ -57,7 +53,7 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
             <button
               type="button"
               onClick={handleNewSeed}
-              className="bg-gray-600 px-2 py-1 rounded hover:bg-gray-300 cursor-pointer"
+              className="bg-gray-600 px-2 py-1 text-sm rounded hover:bg-gray-300 cursor-pointer"
             >
               New Seed
             </button>
@@ -65,7 +61,7 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="width" className="text-sm font-medium">Width</label>
+          <label htmlFor="width" className="text-sm font-medium">Width (in)</label>
           <input
             type="number"
             id="width"
@@ -77,7 +73,7 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="height" className="text-sm font-medium">Height</label>
+          <label htmlFor="height" className="text-sm font-medium">Height (in)</label>
           <input
             type="number"
             id="height"
@@ -89,7 +85,7 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="spacing" className="text-sm font-medium">Spacing</label>
+          <label htmlFor="spacing" className="text-sm font-medium">Spacing (in)</label>
           <input
             type="number"
             id="spacing"
@@ -101,7 +97,7 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="boardWidth" className="text-sm font-medium">Board Width</label>
+          <label htmlFor="boardWidth" className="text-sm font-medium">Board Width (in)</label>
           <input
             type="number"
             id="boardWidth"

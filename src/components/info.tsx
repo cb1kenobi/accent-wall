@@ -1,3 +1,5 @@
+'use client';
+
 import type { Grid } from '@/app/lib/generate-grid';
 import type { FormValues } from './sidebar';
 
@@ -46,22 +48,27 @@ export function Info({ grid, formValues }: { grid: Grid, formValues: FormValues 
     eightFootBoardsNeeded++; // Count the last partial board if used
   }
 
+  const boardsPerSheet = Math.floor(48.125 / (boardWidth + 0.125));
+  const sheetsNeeded = Math.ceil(eightFootBoardsNeeded / boardsPerSheet);
+
   return (
-    <div>
-      <h4>Info</h4>
-	  <div><label>Columns:</label> {grid.columnCount}</div>
-	  <div><label>Rows:</label> {grid.rowCount}</div>
-	  <div><label>Edge gap:</label> {left}"</div>
-	  <div><label>Boards:</label></div>
-	  <ul className="text-sm ml-4">
+    <div className="text-xs">
+      <h4 className="text-lg font-bold">Info</h4>
+	  <div><label className="font-bold">Columns:</label> {grid.columnCount}</div>
+	  <div><label className="font-bold">Rows:</label> {grid.rowCount}</div>
+	  <div><label className="font-bold">Edge gap:</label> {left}"</div>
+	  <div><label className="font-bold">Boards:</label></div>
+	  <ul className="ml-4">
 		{Object.entries(boards)
 		  .sort(([a], [b]) => parseFloat(a) - parseFloat(b))
 		  .map(([length, count]) => (
 			<li key={length}>{parseFloat(length).toFixed(2)}" (x{count})</li>
 		))}
 	  </ul>
-	  <div><label>{squareFeet.toFixed(2)} sq ft</label></div>
-      <div><label>Boards needed: {eightFootBoardsNeeded}</label></div>
+	  <div><label className="font-bold">{squareFeet.toFixed(2)} sq ft</label></div>
+      <div><label className="font-bold">Boards needed: {eightFootBoardsNeeded}</label></div>
+	  <div><label className="font-bold">Boards per sheet: {boardsPerSheet}</label></div>
+      <div><label className="font-bold">Sheets needed: {sheetsNeeded}</label></div>
     </div>
   );
 }

@@ -1,3 +1,5 @@
+'use client';
+
 import type { Grid } from '@/app/lib/generate-grid';
 import type { FormValues } from './sidebar';
 
