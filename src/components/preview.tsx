@@ -3,6 +3,30 @@
 import type { Grid } from '@/app/lib/generate-grid';
 import type { FormValues } from './sidebar';
 
+interface Board {
+  length: number;
+  start?: 'left' | 'right';
+  end?: 'left' | 'right';
+  columns: number[];
+}
+
+interface CutlistChunk {
+  length: number;
+  column: number;
+  start?: 'left' | 'right';
+  end?: 'left' | 'right';
+}
+
+class CutlistBoard {
+  availableLength = 96;
+  chunks: CutlistChunk[] = [];
+
+  addChunk(chunk: CutlistChunk) {
+    this.chunks.push(chunk);
+    this.availableLength -= chunk.length;
+  }
+}
+
 export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValues }) {
   const { width, height, spacing, boardWidth } = formValues;
   const { rowCount, columnCount, columns } = grid;
@@ -11,9 +35,55 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
   const startHeight = 0.75;
   const tileHeight = (height - (baseboardHeight + 0.75 + 0.75)) / rowCount;
 
+  const boardsMap: Record<string, Board> = {};
+  let columnId = 0;
+  for (const column of columns) {
+    for (const segment of column.segments) {
+      if (segment.type === 'board') {
+		    const length = segment.length * tileHeight;
+        const key = `${length}-${segment.start}-${segment.end}`;
+        if (!boardsMap[key]) {
+          boardsMap[key] = {
+            length,
+            start: segment.start,
+            end: segment.end,
+            columns: [columnId],
+          };
+        } else {
+          boardsMap[key].columns.push(columnId);
+        }
+	    }
+    }
+    columnId++;
+  }
+
+  const boards = Object.values(boardsMap).sort((a, b) => b.length - a.length);
+  const cutlist: CutlistBoard[] = [];
+  let squareFeet = 0;
+  for (const board of boards) {
+    for (const column of board.columns) {
+      console.log(`Scanning ${cutlist.length} boards for ${board.length} length`);
+      let currentBoard = cutlist.find(b => b.availableLength >= board.length);
+      console.log(currentBoard ? 'found board' : 'new board');
+      if (!currentBoard) {
+        currentBoard = new CutlistBoard();
+        cutlist.push(currentBoard);
+      }
+      currentBoard.addChunk({
+        length: board.length,
+        column: column,
+        start: board.start,
+        end: board.end,
+      });
+      squareFeet += board.length * boardWidth / 144;
+    }
+  }
+  const boardsPerSheet = Math.floor(48.125 / (boardWidth + 0.125));
+  const sheetsNeeded = Math.ceil(cutlist.length / boardsPerSheet);
+
   return (
     <div>
-      <h1>Preview</h1>
+      <h4 className="text-lg font-bold">Preview</h4>
       <div className="p-1 bg-white">
         <svg
           width="1024"
@@ -46,25 +116,23 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
 
                 const box = [
                   // top left
-                  { x: left + (i * (boardWidth + spacing)), y: top - (segment.start === 'left' ? tileHeight : 0) },
+                  { x: left + (i * (boardWidth + spacing)), y: top - (segment.start === 'left' ? boardWidth : 0) },
                   // bottom left
-                  { x: left + (i * (boardWidth + spacing)), y: top + (segment.length * tileHeight) - (segment.end === 'right' ? tileHeight : 0) },
+                  { x: left + (i * (boardWidth + spacing)), y: top + (segment.length * tileHeight) - (segment.end === 'right' ? boardWidth : 0) },
                   // bottom right
-                  { x: left + (i * (boardWidth + spacing)) + boardWidth, y: top + (segment.length * tileHeight) - (segment.end === 'left' ? tileHeight : 0) },
+                  { x: left + (i * (boardWidth + spacing)) + boardWidth, y: top + (segment.length * tileHeight) - (segment.end === 'left' ? boardWidth : 0) },
                   // top right
-                  { x: left + (i * (boardWidth + spacing)) + boardWidth, y: top - (segment.start === 'right' ? tileHeight : 0) },
+                  { x: left + (i * (boardWidth + spacing)) + boardWidth, y: top - (segment.start === 'right' ? boardWidth : 0) },
                 ];
-
-                let path = `M ${box[0].x},${box[0].y}
-                  L ${box[1].x},${box[1].y}
-                  L ${box[2].x},${box[2].y}
-                  L ${box[3].x},${box[3].y}
-                  Z`;
 
                 return (
                   <path
                     key={`board-${i}-${j}`}
-                    d={path}
+                    d={`M ${box[0].x},${box[0].y}
+                      L ${box[1].x},${box[1].y}
+                      L ${box[2].x},${box[2].y}
+                      L ${box[3].x},${box[3].y}
+                      Z`}
                     fill="black"
                   />
                 );
@@ -88,6 +156,54 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
           })}
         </svg>
       </div>
+      <h4 className="text-lg font-bold mt-2">Cutlist</h4>
+      <div className="text-xs">
+        <div><label className="w-10 font-bold">Boards needed:</label> {cutlist.length}</div>
+        <div><label className="w-10 font-bold">Square feet:</label> {squareFeet.toFixed(2)}</div>
+        <div><label className="w-10 font-bold">Sheets needed:</label> {sheetsNeeded}</div>
+      </div>
+      {cutlist.map((board, i) => {
+        let left = 0;
+        return (
+          <div className="flex flex-row items-center mt-1">
+            <div className="w-10">{i + 1}</div>
+            <svg
+              key={`cutlist-${i}`}
+              height="30"
+              width="1024"
+              preserveAspectRatio="xMinYMid"
+              viewBox="0 0 1024 30"
+            >
+              <rect x="0" y="0" width="100%" height="100%" fill="white" />
+              {board.chunks.map((chunk, j) => {
+                const percentage = (chunk.length / 96) * 100;
+                const x = left;
+                left += percentage;
+                return (
+                  <>
+                    <path
+                      key={`cutlist-${i}-${j}`}
+                      d={`M ${(x/100) * 1024 + (chunk.start === 'left' ? 30 : 0)} 0
+                          L ${((x + percentage)/100) * 1024 - (chunk.end === 'left' ? 30 : 0)} 0
+                          L ${((x + percentage)/100) * 1024 - (chunk.end === 'right' ? 30 : 0)} 30
+                          L ${(x/100) * 1024 + (chunk.start === 'right' ? 30 : 0)} 30 Z`}
+                      fill={j === 0 ? '#999' : j === 1 ? '#888' : j === 2 ? '#777' : '#666'}
+                    />
+                    <text
+                      x={`${x + (percentage/2)}%`}
+                      y="50%"
+                      fill="black"
+                      fontSize="14"
+                      dominantBaseline="middle"
+                      textAnchor="middle"
+                    >{chunk.length.toFixed(4)}" (col {chunk.column + 1})</text>
+                  </>
+                );
+              })}
+            </svg>
+          </div>
+        );
+      })}
     </div>
   );
 }

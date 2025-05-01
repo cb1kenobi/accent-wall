@@ -16,9 +16,9 @@ export function Info({ grid, formValues }: { grid: Grid, formValues: FormValues 
   for (const column of columns) {
     for (const segment of column.segments) {
       if (segment.type === 'board') {
-		const length = segment.length * tileHeight;
+		    const length = segment.length * tileHeight;
         boards[length] = (boards[length] || 0) + 1;
-		squareFeet += (length * boardWidth) / 144;
+		    squareFeet += (length * boardWidth) / 144;
       }
     }
   }
@@ -54,21 +54,9 @@ export function Info({ grid, formValues }: { grid: Grid, formValues: FormValues 
   return (
     <div className="text-xs">
       <h4 className="text-lg font-bold">Info</h4>
-	  <div><label className="font-bold">Columns:</label> {grid.columnCount}</div>
-	  <div><label className="font-bold">Rows:</label> {grid.rowCount}</div>
-	  <div><label className="font-bold">Edge gap:</label> {left}"</div>
-	  <div><label className="font-bold">Boards:</label></div>
-	  <ul className="ml-4">
-		{Object.entries(boards)
-		  .sort(([a], [b]) => parseFloat(a) - parseFloat(b))
-		  .map(([length, count]) => (
-			<li key={length}>{parseFloat(length).toFixed(2)}" (x{count})</li>
-		))}
-	  </ul>
-	  <div><label className="font-bold">{squareFeet.toFixed(2)} sq ft</label></div>
-      <div><label className="font-bold">Boards needed: {eightFootBoardsNeeded}</label></div>
-	  <div><label className="font-bold">Boards per sheet: {boardsPerSheet}</label></div>
-      <div><label className="font-bold">Sheets needed: {sheetsNeeded}</label></div>
+      <div><label className="font-bold">Columns:</label> {grid.columnCount}</div>
+      <div><label className="font-bold">Rows:</label> {grid.rowCount}</div>
+      <div><label className="font-bold">Side gaps:</label> {left}"</div>
     </div>
   );
 }

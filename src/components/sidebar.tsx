@@ -12,6 +12,7 @@ export interface FormValues {
     height: number;
     spacing: number;
     boardWidth: number;
+    rows: number;
 }
 
 export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
@@ -19,7 +20,8 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
     width: 153.25,
     height: 96,
     spacing: 0.75,
-    boardWidth: 2.5
+    boardWidth: 2.5,
+    rows: 24
   });
 
   React.useEffect(() => {
@@ -31,7 +33,7 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
     const numValue = parseFloat(value) || 0;
     const newValues = {
       ...formValues,
-      [name]: Math.max(numValue, 0.125)
+      [name]: name === 'rows' ? Math.max(numValue, 15) : Math.max(numValue, 0.125)
     };
     setFormValues(newValues);
     onFormChange(newValues);
@@ -58,6 +60,19 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
               New Seed
             </button>
           </div>
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor="rows" className="text-sm font-medium">Rows</label>
+          <input
+            type="number"
+            id="rows"
+            name="rows"
+            min={15}
+            value={formValues.rows}
+            onChange={handleInputChange}
+            className="border rounded px-2 py-1"
+          />
         </div>
 
         <div className="flex flex-col">

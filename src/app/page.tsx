@@ -12,17 +12,14 @@ function numberOfBoards(width: number, spacing: number, boardWidth: number) {
 }
 
 export default function Home() {
-  const rows = 24;
   const [columns, setColumns] = React.useState(24);
-
   const [formValues, setFormValues] = React.useState<FormValues | null>(null);
-
   const [seed, setSeed] = React.useState<number | null>(null);
   const [grid, setGrid] = React.useState<Grid | null>(null);
 
-  const handleGrid = () => {
-    if (seed) {
-      setGrid(generateGrid(seed, columns, rows));
+  const handleGrid = (rowCount: number) => {
+    if (seed && formValues?.rows) {
+      setGrid(generateGrid(seed, columns, rowCount));
     }
   };
 
@@ -34,12 +31,12 @@ export default function Home() {
     } else {
       setSeed(Math.floor(Math.random() * 1000000));
     }
-    handleGrid();
+    formValues && handleGrid(formValues.rows);
   }, [columns]);
 
   const handleNewSeed = (seed: number) => {
     setSeed(seed);
-    handleGrid();
+    formValues && handleGrid(formValues.rows);
   };
 
   const handleFormChange = (formValues: FormValues) => {
@@ -50,7 +47,7 @@ export default function Home() {
       formValues.boardWidth
     );
     setColumns(calculatedColumns);
-    handleGrid();
+    handleGrid(formValues.rows);
   };
 
   return (
