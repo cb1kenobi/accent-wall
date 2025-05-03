@@ -173,7 +173,7 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
       {cutlist.map((board, i) => {
         let left = 0;
         return (
-          <div className="flex flex-row items-center mt-1">
+          <div className="flex flex-row items-center mt-1" key={`cutlist-${i}`}>
             <div className="w-10">{i + 1}</div>
             <svg
               key={`cutlist-${i}`}
