@@ -39,6 +39,14 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
     onFormChange(newValues);
   };
 
+  const handleLoad = () => {
+    // TODO
+  };
+
+  const handleSave = () => {
+    // TODO
+  };
+
   const handleNewSeed = () => {
     const newSeed = Math.floor(Math.random() * 1000000);
     const params = new URLSearchParams(window.location.search);
@@ -50,17 +58,29 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
   return (
     <div className="flex flex-col gap-y-2 w-32">
       <div className="flex flex-col gap-y-2">
-        <div className="flex flex-col">
-          <div className="flex gap-x-2">
-            <button
-              type="button"
-              onClick={handleNewSeed}
-              className="bg-gray-600 px-2 py-1 text-sm rounded hover:bg-gray-300 cursor-pointer"
-            >
-              New Seed
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={handleLoad}
+          disabled={true}
+          className="bg-blue-600 disabled:bg-gray-400 disabled:text-gray-600 px-2 py-1 text-sm rounded hover:bg-gray-300 cursor-pointer w-full"
+        >
+          Load
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={true}
+          className="bg-blue-600 disabled:bg-gray-400 disabled:text-gray-600 px-2 py-1 text-sm rounded hover:bg-gray-300 cursor-pointer w-full"
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={handleNewSeed}
+          className="bg-blue-600 px-2 py-1 text-sm rounded hover:bg-blue-700 cursor-pointer w-full"
+        >
+          Generate New
+        </button>
 
         <div className="flex flex-col">
           <label htmlFor="rows" className="text-sm font-medium">Rows</label>
@@ -81,6 +101,7 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
             type="number"
             id="width"
             name="width"
+            min={1}
             value={formValues.width}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
@@ -93,6 +114,7 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
             type="number"
             id="height"
             name="height"
+            min={1}
             value={formValues.height}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
@@ -105,6 +127,7 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
             type="number"
             id="spacing"
             name="spacing"
+            min={0}
             value={formValues.spacing}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
@@ -117,6 +140,7 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
             type="number"
             id="boardWidth"
             name="boardWidth"
+            min={0.75}
             value={formValues.boardWidth}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"

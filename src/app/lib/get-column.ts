@@ -2,20 +2,22 @@
 
 import seedrandom from 'seedrandom';
 
-interface Segment {
+export type SegmentType = 'board' | 'space';
+
+export interface Segment {
   length: number;
-  type: 'board' | 'space';
+  type: SegmentType;
   start?: 'left' | 'right';
   end?: 'left' | 'right';
 }
 
 export interface Column {
   index: number;
-  columnType: string;
   segments: Segment[];
   tiles: string[];
 }
 
+// column type is only used for generating the random grid
 const columnTypes = [
   'board-space',
   'space-board',
@@ -30,7 +32,7 @@ export function getColumn(rng: seedrandom.PRNG, index: number, cellCount: number
   const columnType = columnTypes[Math.floor(rng() * columnTypes.length)];
   const segments: Segment[] = [];
   const randPoint = () => { return Math.round(rng()) === 0 ? 'left' : 'right' };
-  const minBoardCells = 4;
+  const minBoardCells = 6;
   const minSpaceCells = 2;
 
   // randomly pick segment lengths
@@ -159,7 +161,6 @@ export function getColumn(rng: seedrandom.PRNG, index: number, cellCount: number
 
   return {
     index,
-    columnType,
     segments,
     tiles,
   };

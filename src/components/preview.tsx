@@ -63,9 +63,7 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
   let squareFeet = 0;
   for (const board of boards) {
     for (const column of board.columns) {
-      console.log(`Scanning ${cutlist.length} boards for ${board.length} length`);
       let currentBoard = cutlist.find(b => b.availableLength >= board.length);
-      console.log(currentBoard ? 'found board' : 'new board');
       if (!currentBoard) {
         currentBoard = new CutlistBoard();
         cutlist.push(currentBoard);
@@ -87,7 +85,7 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
   const sheetsNeeded = Math.ceil(cutlist.length / boardsPerSheet);
 
   return (
-    <div>
+    <div className="pb-2">
       <h4 className="text-lg font-bold">Preview</h4>
       <div className="p-1">
         <svg
@@ -167,6 +165,7 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
         <div><label className="w-10 font-bold">Square feet:</label> {squareFeet.toFixed(2)}</div>
         <div><label className="w-10 font-bold">Boards needed:</label> {boardCount}</div>
         <div><label className="w-10 font-bold">8' strips needed:</label> {cutlist.length}</div>
+        <div><label className="w-10 font-bold">8' strips per sheet:</label> {boardsPerSheet}</div>
         <div><label className="w-10 font-bold">Sheets needed:</label> {sheetsNeeded}</div>
         <div><label className="w-10 font-bold">Blade kerf:</label> {kerf}"</div>
       </div>
@@ -188,9 +187,8 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
                 const x = left;
                 left += percentage;
                 return (
-                  <>
+                  <g key={`cutlist-${i}-${j}`}>
                     <path
-                      key={`cutlist-${i}-${j}`}
                       d={`M ${(x/100) * 1024 + (chunk.start === 'left' ? 30 : 0)} 0
                           L ${((x + percentage)/100) * 1024 - (chunk.end === 'left' ? 30 : 0)} 0
                           L ${((x + percentage)/100) * 1024 - (chunk.end === 'right' ? 30 : 0)} 30
@@ -205,7 +203,7 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
                       dominantBaseline="middle"
                       textAnchor="middle"
                     >{chunk.length.toFixed(4)}" (col {chunk.column + 1})</text>
-                  </>
+                  </g>
                 );
               })}
             </svg>

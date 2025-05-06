@@ -2,6 +2,7 @@ import seedrandom from 'seedrandom';
 import { type Column, getColumn } from './get-column';
 
 export interface Grid {
+	custom: boolean;
 	rowCount: number;
 	columnCount: number;
 	columns: Column[];
@@ -16,6 +17,7 @@ export function generateGrid(seed: number, columnCount: number, rowCount: number
 	}
 
 	return {
+		custom: false,
 		rowCount,
 		columnCount,
 		columns,
