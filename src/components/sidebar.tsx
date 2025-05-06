@@ -4,7 +4,9 @@ import React from 'react';
 
 interface SidebarProps {
   onFormChange: (formValues: FormValues) => void;
-  onNewSeed: (seed: number) => void;
+  onNewSeed: () => void;
+  onLoad: () => void;
+  onSave: () => void;
 }
 
 export interface FormValues {
@@ -15,7 +17,7 @@ export interface FormValues {
     rows: number;
 }
 
-export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
+export function Sidebar({ onFormChange, onNewSeed, onLoad, onSave }: SidebarProps) {
   const [formValues, setFormValues] = React.useState<FormValues>({
     width: 153.25,
     height: 96,
@@ -39,44 +41,26 @@ export function Sidebar({ onFormChange, onNewSeed }: SidebarProps) {
     onFormChange(newValues);
   };
 
-  const handleLoad = () => {
-    // TODO
-  };
-
-  const handleSave = () => {
-    // TODO
-  };
-
-  const handleNewSeed = () => {
-    const newSeed = Math.floor(Math.random() * 1000000);
-    const params = new URLSearchParams(window.location.search);
-    params.set('seed', newSeed.toString());
-    window.history.replaceState({}, '', `?${params.toString()}`);
-    onNewSeed(newSeed);
-  }
-
   return (
     <div className="flex flex-col gap-y-2 w-32">
       <div className="flex flex-col gap-y-2">
         <button
           type="button"
-          onClick={handleLoad}
-          disabled={true}
-          className="bg-blue-600 disabled:bg-gray-400 disabled:text-gray-600 px-2 py-1 text-sm rounded hover:bg-gray-300 cursor-pointer w-full"
+          onClick={onLoad}
+          className="bg-blue-600 px-2 py-1 text-sm rounded hover:bg-gray-300 cursor-pointer w-full"
         >
           Load
         </button>
         <button
           type="button"
-          onClick={handleSave}
-          disabled={true}
-          className="bg-blue-600 disabled:bg-gray-400 disabled:text-gray-600 px-2 py-1 text-sm rounded hover:bg-gray-300 cursor-pointer w-full"
+          onClick={onSave}
+          className="bg-blue-600 px-2 py-1 text-sm rounded hover:bg-gray-300 cursor-pointer w-full"
         >
           Save
         </button>
         <button
           type="button"
-          onClick={handleNewSeed}
+          onClick={onNewSeed}
           className="bg-blue-600 px-2 py-1 text-sm rounded hover:bg-blue-700 cursor-pointer w-full"
         >
           Generate New

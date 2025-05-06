@@ -3,7 +3,7 @@
 import { Preview } from '@/components/preview';
 import { Sidebar, type FormValues } from '@/components/sidebar';
 import { TileGrid, TileType } from '@/components/tilegrid';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { generateGrid, type Grid } from '@/app/lib/generate-grid';
 import { Info } from '@/components/info';
 import { Column, type Segment } from './lib/get-column';
@@ -14,9 +14,10 @@ function numberOfBoards(width: number, spacing: number, boardWidth: number) {
 
 export default function Home() {
   const [columns, setColumns] = React.useState(24);
+  const [filename, setFilename] = React.useState<string>('');
   const [formValues, setFormValues] = React.useState<FormValues | null>(null);
-  const [seed, setSeed] = React.useState<number | null>(null);
   const [grid, setGrid] = React.useState<Grid | null>(null);
+  const [seed, setSeed] = React.useState<number | null>(null);
 
   const handleGrid = (rowCount: number) => {
     if (seed && formValues?.rows) {
@@ -24,7 +25,7 @@ export default function Home() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const seedParam = params.get('seed');
     if (seedParam) {
@@ -35,11 +36,17 @@ export default function Home() {
     formValues && handleGrid(formValues.rows);
   }, [columns]);
 
-  const handleNewSeed = (seed: number) => {
-    if (grid?.custom && !confirm('Are you sure you want to generate a new seed?')) {
+  const handleNewSeed = () => {
+    if (!grid?.seed && !confirm('Are you sure you want to generate a new seed?')) {
       return;
     }
-    setSeed(seed);
+
+    const newSeed = Math.floor(Math.random() * 1000000);
+    const params = new URLSearchParams(window.location.search);
+    params.set('seed', newSeed.toString());
+    window.history.replaceState({}, '', `?${params.toString()}`);
+
+    setSeed(newSeed);
     formValues && handleGrid(formValues.rows);
   };
 
@@ -61,9 +68,9 @@ export default function Home() {
 
     const newGrid = {
       ...grid,
-      custom: true,
       columns: [...grid.columns],
     };
+    delete newGrid.seed;
 
     const column = newGrid.columns[col.index];
     column.tiles[rowIndex] = tileType;
@@ -102,10 +109,33 @@ export default function Home() {
     setGrid(newGrid);
   };
 
+  const handleLoad = () => {
+    // TODO
+  };
+
+  const handleSave = () => {
+    // show modal, get name, save to local storage
+    const name = prompt('Enter a name for this design:', filename);
+    if (name) {
+      if (!grid) {
+        alert('No grid to save!');
+        return;
+      }
+      setFilename(name);
+      const data = JSON.stringify({
+        ...formValues,
+        columns: grid.columns,
+        seed: grid.seed,
+      });
+      console.log(data);
+      // localStorage.setItem(name, JSON.stringify(formValues));
+    }
+  };
+  
   return (
     <div className="flex gap-x-2 h-screen overflow-auto">
       <div className="flex flex-col gap-y-6 sticky top-2 h-fit p-2">
-        <Sidebar onFormChange={handleFormChange} onNewSeed={handleNewSeed} />
+        <Sidebar onFormChange={handleFormChange} onNewSeed={handleNewSeed} onLoad={handleLoad} onSave={handleSave} />
         {grid && formValues && <Info grid={grid} formValues={formValues} />}
       </div>
       <div className="flex flex-col gap-y-2 p-2">
