@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import { useEffect, useState } from 'react';
+import { Button } from './ui/button';
 
 interface SidebarProps {
   onFormChange: (formValues: FormValues) => void;
@@ -18,7 +19,7 @@ export interface FormValues {
 }
 
 export function Sidebar({ onFormChange, onNewSeed, onLoad, onSave }: SidebarProps) {
-  const [formValues, setFormValues] = React.useState<FormValues>({
+  const [formValues, setFormValues] = useState<FormValues>({
     width: 153.25,
     height: 96,
     spacing: 0.75,
@@ -26,7 +27,7 @@ export function Sidebar({ onFormChange, onNewSeed, onLoad, onSave }: SidebarProp
     rows: 24
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     onFormChange(formValues);
   }, []);
 
@@ -44,27 +45,24 @@ export function Sidebar({ onFormChange, onNewSeed, onLoad, onSave }: SidebarProp
   return (
     <div className="flex flex-col gap-y-2 w-32">
       <div className="flex flex-col gap-y-2">
-        <button
-          type="button"
+        <Button
           onClick={onLoad}
-          className="bg-blue-600 px-2 py-1 text-sm rounded hover:bg-gray-300 cursor-pointer w-full"
+          className="bg-blue-600 px-2 py-1 text-sm text-white rounded hover:bg-blue-700 cursor-pointer w-full"
         >
           Load
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           onClick={onSave}
-          className="bg-blue-600 px-2 py-1 text-sm rounded hover:bg-gray-300 cursor-pointer w-full"
+          className="bg-blue-600 px-2 py-1 text-sm text-white rounded hover:bg-blue-700 cursor-pointer w-full"
         >
           Save
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           onClick={onNewSeed}
-          className="bg-blue-600 px-2 py-1 text-sm rounded hover:bg-blue-700 cursor-pointer w-full"
+          className="bg-blue-600 px-2 py-1 text-sm text-white rounded hover:bg-blue-700 cursor-pointer w-full"
         >
           Generate New
-        </button>
+        </Button>
 
         <div className="flex flex-col">
           <label htmlFor="rows" className="text-sm font-medium">Rows</label>

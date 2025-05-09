@@ -3,21 +3,24 @@
 import { Preview } from '@/components/preview';
 import { Sidebar, type FormValues } from '@/components/sidebar';
 import { TileGrid, TileType } from '@/components/tilegrid';
-import React, { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { generateGrid, type Grid } from '@/app/lib/generate-grid';
 import { Info } from '@/components/info';
 import { Column, type Segment } from './lib/get-column';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 function numberOfBoards(width: number, spacing: number, boardWidth: number) {
   return Math.floor((width + spacing) / (boardWidth + spacing));
 }
 
 export default function Home() {
-  const [columns, setColumns] = React.useState(24);
-  const [filename, setFilename] = React.useState<string>('');
-  const [formValues, setFormValues] = React.useState<FormValues | null>(null);
-  const [grid, setGrid] = React.useState<Grid | null>(null);
-  const [seed, setSeed] = React.useState<number | null>(null);
+  const [columns, setColumns] = useState(24);
+  const [filename, setFilename] = useState<string>('');
+  const [formValues, setFormValues] = useState<FormValues | null>(null);
+  const [grid, setGrid] = useState<Grid | null>(null);
+  const [seed, setSeed] = useState<number | null>(null);
+  const [open, setOpen] = useState(false);
 
   const handleGrid = (rowCount: number) => {
     if (seed && formValues?.rows) {
@@ -131,7 +134,7 @@ export default function Home() {
       // localStorage.setItem(name, JSON.stringify(formValues));
     }
   };
-  
+
   return (
     <div className="flex gap-x-2 h-screen overflow-auto">
       <div className="flex flex-col gap-y-6 sticky top-2 h-fit p-2">
