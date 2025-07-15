@@ -29,6 +29,86 @@ export async function saveDesignAction(data: Design) {
     throw new Error('Unauthorized');
   }
 
+  if (!data.name) {
+    throw new Error('Name is required');
+  }
+
+  if (typeof data.name !== 'string') {
+    throw new Error('Name must be a string');
+  }
+
+  if (data.name.length > 255) {
+    throw new Error('Name must be less than 255 characters');
+  }
+
+  if (typeof data.boardWidth !== 'number') {
+    throw new Error('Board width must be a number');
+  }
+
+  if (typeof data.height !== 'number') {
+    throw new Error('Height must be a number');
+  }
+
+  if (typeof data.rows !== 'number') {
+    throw new Error('Rows must be a number');
+  }
+
+  if (data.seed !== undefined && typeof data.seed !== 'number') {
+    throw new Error('Seed must be a number');
+  }
+
+  if (typeof data.spacing !== 'number') {
+    throw new Error('Spacing must be a number');
+  }
+
+  if (typeof data.width !== 'number') {
+    throw new Error('Width must be a number');
+  }
+
+  if (!Array.isArray(data.columns)) {
+    throw new Error('Columns must be an array');
+  }
+
+  for (const column of data.columns) {
+    if (!column) {
+      throw new Error('Column must be an object');
+    }
+
+    if (!column.index || typeof column.index !== 'number') {
+      throw new Error('Column index must be a number');
+    }
+
+    if (!Array.isArray(column.tiles) || !column.tiles.every(tile => typeof tile === 'string')) {
+      throw new Error('Column tiles must be an array of strings');
+    }
+
+    if (!Array.isArray(column.segments) || !column.segments.every(segment => {
+      if (!segment) {
+        return false;
+      }
+
+      if (segment.type !== 'board' && segment.type !== 'space') {
+        return false;
+      }
+
+      if (typeof segment.length !== 'number') {
+        return false;
+      }
+
+      if (segment.start !== undefined && segment.start !== 'left' && segment.start !== 'right') {
+        return false;
+      }
+
+      if (segment.end !== undefined && segment.end !== 'left' && segment.end !== 'right') {
+        return false;
+      }
+
+      return true;
+    })) {
+      throw new Error('Column segments must be an array of objects');
+    }
+  }
+
   if (data.designId) {
     await db.update(designsTable).set({
       name: data.name,

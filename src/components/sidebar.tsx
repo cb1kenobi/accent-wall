@@ -78,6 +78,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             onChange={onNameChange}
             className="border rounded px-2 py-1"
             autoComplete="off"
+            maxLength={255}
           />
         </div>
 
