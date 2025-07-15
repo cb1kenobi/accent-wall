@@ -5,12 +5,12 @@ import { Button } from './ui/button';
 
 interface SidebarProps {
   onFormChange: (formValues: FormValues) => void;
-  onNewSeed: () => void;
-  onLoad: () => void;
-  onSave: () => void;
+  resetTrigger?: number;
+  initialValues?: FormValues; // Add this prop
 }
 
 export interface FormValues {
+    name: string;
     width: number;
     height: number;
     spacing: number;
@@ -18,18 +18,41 @@ export interface FormValues {
     rows: number;
 }
 
-export function Sidebar({ onFormChange, onNewSeed, onLoad, onSave }: SidebarProps) {
-  const [formValues, setFormValues] = useState<FormValues>({
+export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarProps) {
+  const defaultValues: FormValues = {
+    name: 'Untitled',
     width: 153.25,
     height: 96,
     spacing: 0.75,
     boardWidth: 2.5,
     rows: 24
+  };
+
+  const [formValues, setFormValues] = useState<FormValues>({
+    ...defaultValues,
+    ...initialValues,
   });
 
   useEffect(() => {
-    onFormChange(formValues);
-  }, []);
+    if (resetTrigger !== undefined) {
+      setFormValues(defaultValues);
+      onFormChange(defaultValues);
+    }
+  }, [resetTrigger]);
+
+  // Add effect to handle loading initial values
+  useEffect(() => {
+    if (initialValues) {
+      setFormValues(initialValues);
+    }
+  }, [initialValues]);
+
+  const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    const newValues = { ...formValues, name: value };
+    setFormValues(newValues);
+    onFormChange(newValues);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,26 +66,20 @@ export function Sidebar({ onFormChange, onNewSeed, onLoad, onSave }: SidebarProp
   };
 
   return (
-    <div className="flex flex-col gap-y-2 w-32">
+    <div className="flex flex-col gap-y-2 w-40">
       <div className="flex flex-col gap-y-2">
-        <Button
-          onClick={onLoad}
-          className="bg-blue-600 px-2 py-1 text-sm text-white rounded hover:bg-blue-700 cursor-pointer w-full"
-        >
-          Load
-        </Button>
-        <Button
-          onClick={onSave}
-          className="bg-blue-600 px-2 py-1 text-sm text-white rounded hover:bg-blue-700 cursor-pointer w-full"
-        >
-          Save
-        </Button>
-        <Button
-          onClick={onNewSeed}
-          className="bg-blue-600 px-2 py-1 text-sm text-white rounded hover:bg-blue-700 cursor-pointer w-full"
-        >
-          Generate New
-        </Button>
+        <div className="flex flex-col">
+          <label htmlFor="rows" className="text-sm font-medium">Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={formValues.name}
+            onChange={onNameChange}
+            className="border rounded px-2 py-1"
+            autoComplete="off"
+          />
+        </div>
 
         <div className="flex flex-col">
           <label htmlFor="rows" className="text-sm font-medium">Rows</label>

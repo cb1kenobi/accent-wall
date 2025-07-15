@@ -28,6 +28,53 @@ const columnTypes = [
   'board-space-board-space-board',
 ];
 
+export function getColumn2(rng: seedrandom.PRNG, index: number, cellCount: number): Column {
+  const segments: Segment[] = [];
+  const randPoint = () => { return Math.round(rng()) === 0 ? 'left' : 'right' };
+  const chunks = generateColumnChunks(rng);
+  console.log(chunks);
+  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+  console.log({ cellCount, totalLength });
+  let total = 0;
+  let i = 0;
+
+  for (const chunk of chunks) {
+    console.log(cellCount * (chunk.length / totalLength));
+    if (i + 1 === chunks.length) {
+      // last one
+      const length = cellCount - total;
+      segments.push({ length, type: chunk.type });
+      total += length;
+    } else {
+      const length = Math.floor(cellCount * (chunk.length / totalLength));
+      segments.push({ length, type: chunk.type });
+      total += length;
+    }
+    i++;
+  }
+
+  return {
+    index,
+    segments,
+    tiles: generateTiles(segments),
+  };
+}
+
+function generateColumnChunks(rng: seedrandom.PRNG): { length: number, type: 'board' | 'space' }[] {
+  const columnType = columnTypes[Math.floor(rng() * columnTypes.length)];
+  const chunks: { length: number, type: 'board' | 'space' }[] = [];
+  for (const type of columnType.split('-')) {
+    chunks.push(generateChunk(rng, type as 'board' | 'space'));
+  }
+  return chunks;
+}
+
+function generateChunk(rng: seedrandom.PRNG, type: 'board' | 'space'): { length: number, type: 'board' | 'space' } {
+  const min = type === 'board' ? 75 : 10;
+  const max = type === 'board' ? 90 : 30;
+  return { length: Math.floor(rng() * (max - min + 1)) + min, type };
+}
+
 export function getColumn(rng: seedrandom.PRNG, index: number, cellCount: number): Column {
   const columnType = columnTypes[Math.floor(rng() * columnTypes.length)];
   const segments: Segment[] = [];
@@ -140,6 +187,14 @@ export function getColumn(rng: seedrandom.PRNG, index: number, cellCount: number
     segments.push({ length: fifthSegmentCells, type: 'board', start: randPoint() });
   }
 
+  return {
+    index,
+    segments,
+    tiles: generateTiles(segments),
+  };
+}
+
+function generateTiles(segments: Segment[]): string[] {
   const tiles: string[] = [];
   for (const segment of segments) {
     if (segment.type === 'board') {
@@ -158,10 +213,5 @@ export function getColumn(rng: seedrandom.PRNG, index: number, cellCount: number
       }
     }
   }
-
-  return {
-    index,
-    segments,
-    tiles,
-  };
+  return tiles;
 }

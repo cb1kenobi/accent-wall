@@ -38,7 +38,11 @@ const tileTypes = {
 
 export type TileType = keyof typeof tileTypes;
 
-export function TileGrid({ grid, onTileClick }: { grid?: Grid | null; onTileClick: (col: Column, rowIndex: number, tileType: TileType) => void; }) {
+export function TileGrid({ grid, onFill, onTileClick }: {
+  grid?: Grid | null;
+  onFill: () => void;
+  onTileClick: (col: Column, rowIndex: number, tileType: TileType) => void;
+}) {
   if (!grid) {
     return null;
   }
@@ -58,6 +62,9 @@ export function TileGrid({ grid, onTileClick }: { grid?: Grid | null; onTileClic
             {tileTypes[type as keyof typeof tileTypes]}
           </div>
         ))}
+        <div className="w-6 h-6 m-2 bg-black text-white border-1 border-gray-400 cursor-pointer text-center text-xs leading-6" onClick={onFill}>
+          Fill
+        </div>
       </div>
       <div className="p-1 flex flex-row gap-x-1 bg-gray-200">
         {grid.columns.map((col, colIndex) => (
