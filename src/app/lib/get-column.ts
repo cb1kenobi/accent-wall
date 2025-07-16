@@ -38,6 +38,9 @@ export function getColumn2(rng: seedrandom.PRNG, index: number, cellCount: numbe
   let total = 0;
   let i = 0;
 
+  // start: randPoint()
+  //end: randPoint()
+
   for (const chunk of chunks) {
     console.log(cellCount * (chunk.length / totalLength));
     if (i + 1 === chunks.length) {
@@ -63,15 +66,30 @@ export function getColumn2(rng: seedrandom.PRNG, index: number, cellCount: numbe
 function generateColumnChunks(rng: seedrandom.PRNG): { length: number, type: 'board' | 'space' }[] {
   const columnType = columnTypes[Math.floor(rng() * columnTypes.length)];
   const chunks: { length: number, type: 'board' | 'space' }[] = [];
-  for (const type of columnType.split('-')) {
-    chunks.push(generateChunk(rng, type as 'board' | 'space'));
+  const types = columnType.split('-');
+  let i = 0;
+  const len = types.length;
+  for (const type of types) {
+    chunks.push(generateChunk(rng, type as 'board' | 'space', i++, len));
   }
   return chunks;
 }
 
-function generateChunk(rng: seedrandom.PRNG, type: 'board' | 'space'): { length: number, type: 'board' | 'space' } {
-  const min = type === 'board' ? 75 : 10;
-  const max = type === 'board' ? 90 : 30;
+function generateChunk(rng: seedrandom.PRNG, type: 'board' | 'space', i: number, len: number): { length: number, type: 'board' | 'space' } {
+  if (type === 'board') {
+    const min = 25;
+    const max = 100;
+    return { length: Math.floor(rng() * (max - min + 1)) + min, type };
+  }
+
+  if (i === 0 || i === len - 1) {
+    const min = 5;
+    const max = 15;
+    return { length: Math.floor(rng() * (max - min + 1)) + min, type };
+  }
+
+  const min = 5;
+  const max = 30;
   return { length: Math.floor(rng() * (max - min + 1)) + min, type };
 }
 

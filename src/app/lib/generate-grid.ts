@@ -1,5 +1,5 @@
 import seedrandom from 'seedrandom';
-import { type Column, getColumn } from './get-column';
+import { type Column, getColumn, getColumn2 } from './get-column';
 
 export interface Grid {
 	columnCount: number;
