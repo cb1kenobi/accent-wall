@@ -17,43 +17,74 @@ export interface Column {
   tiles: string[];
 }
 
-// column type is only used for generating the random grid
-const columnTypes = [
-  'board-space',
-  'space-board',
-  'board-space-board',
-  'space-board-space',
-  'board-space-board-space',
-  'space-board-space-board',
-  'board-space-board-space-board',
+// Define column types with their weights
+const columnTypeWeights: { type: string; weight: number }[] = [
+  { type: 'board-space', weight: 20 },
+  { type: 'space-board', weight: 20 },
+  { type: 'board-space-board', weight: 30 },
+  { type: 'space-board-space', weight: 5 },
+  { type: 'board-space-board-space', weight: 5 },
+  { type: 'space-board-space-board', weight: 3 },
+  { type: 'board-space-board-space-board', weight: 2 },
 ];
+
+// Create the original columnTypes array for backward compatibility
+const columnTypes = columnTypeWeights.map(item => item.type);
+
+// Function to select a weighted random column type
+function selectWeightedColumnType(rng: seedrandom.PRNG): string {
+  const totalWeight = columnTypeWeights.reduce((sum, item) => sum + item.weight, 0);
+  const randomValue = rng() * totalWeight;
+
+  let currentWeight = 0;
+  for (const item of columnTypeWeights) {
+    currentWeight += item.weight;
+    if (randomValue <= currentWeight) {
+      return item.type;
+    }
+  }
+
+  // Fallback (should never reach here)
+  return columnTypeWeights[0].type;
+}
 
 export function getColumn2(rng: seedrandom.PRNG, index: number, cellCount: number): Column {
   const segments: Segment[] = [];
   const randPoint = () => { return Math.round(rng()) === 0 ? 'left' : 'right' };
   const chunks = generateColumnChunks(rng);
-  console.log(chunks);
   const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-  console.log({ cellCount, totalLength });
   let total = 0;
   let i = 0;
 
-  // start: randPoint()
-  //end: randPoint()
-
   for (const chunk of chunks) {
-    console.log(cellCount * (chunk.length / totalLength));
+    const result: Partial<Segment> = { length: 0, type: chunk.type };
     if (i + 1 === chunks.length) {
       // last one
-      const length = cellCount - total;
-      segments.push({ length, type: chunk.type });
-      total += length;
+      result.length = Math.max(1, cellCount - total);
+      if (chunk.type === 'board') {
+        result.start = randPoint();
+      }
+    } else if (i === 0) {
+      // first one
+      result.length = Math.max(1, Math.floor(cellCount * (chunk.length / totalLength)));
+      if (chunk.type === 'board') {
+        result.end = randPoint();
+      }
     } else {
-      const length = Math.floor(cellCount * (chunk.length / totalLength));
-      segments.push({ length, type: chunk.type });
-      total += length;
+      result.length = Math.max(1, Math.floor(cellCount * (chunk.length / totalLength)));
+      if (chunk.type === 'board') {
+        result.start = randPoint();
+        result.end = randPoint();
+      }
     }
+
+    if (index === 23) {
+      console.log(result);
+    }
+
+    segments.push(result as Segment);
     i++;
+    total += result.length;
   }
 
   return {
@@ -64,7 +95,7 @@ export function getColumn2(rng: seedrandom.PRNG, index: number, cellCount: numbe
 }
 
 function generateColumnChunks(rng: seedrandom.PRNG): { length: number, type: 'board' | 'space' }[] {
-  const columnType = columnTypes[Math.floor(rng() * columnTypes.length)];
+  const columnType = selectWeightedColumnType(rng);
   const chunks: { length: number, type: 'board' | 'space' }[] = [];
   const types = columnType.split('-');
   let i = 0;
@@ -94,7 +125,7 @@ function generateChunk(rng: seedrandom.PRNG, type: 'board' | 'space', i: number,
 }
 
 export function getColumn(rng: seedrandom.PRNG, index: number, cellCount: number): Column {
-  const columnType = columnTypes[Math.floor(rng() * columnTypes.length)];
+  const columnType = selectWeightedColumnType(rng);
   const segments: Segment[] = [];
   const randPoint = () => { return Math.round(rng()) === 0 ? 'left' : 'right' };
   const minBoardCells = 6;

@@ -13,7 +13,7 @@ export function generateGrid(seed: number, columnCount: number, rowCount: number
 
 	const columns: Column[] = [];
 	for (let i = 0; i < columnCount; i++) {
-		columns.push(getColumn(rng, i, rowCount));
+		columns.push(getColumn2(rng, i, rowCount));
 	}
 
 	return {

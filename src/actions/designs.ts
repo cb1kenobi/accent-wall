@@ -74,7 +74,7 @@ export async function saveDesignAction(data: Design) {
       throw new Error('Column must be an object');
     }
 
-    if (!column.index || typeof column.index !== 'number') {
+    if (column.index === undefined || typeof column.index !== 'number') {
       throw new Error('Column index must be a number');
     }
 

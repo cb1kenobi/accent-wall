@@ -86,7 +86,7 @@ export function TileGrid({ grid, onFill, onTileClick }: {
                 doesTileMakeSense = false;
               } else if ((lastTile === 'board-down-left' || lastTile === 'board-down-right') && currentTile !== 'blank') {
                 doesTileMakeSense = false;
-              } else if ((lastTile === 'board-up-left' || lastTile === 'board-up-right') && currentTile !== 'board') {
+              } else if ((lastTile === 'board-up-left' || lastTile === 'board-up-right') && (currentTile !== 'board' && currentTile !== 'board-down-left' && currentTile !== 'board-down-right')) {
                 doesTileMakeSense = false;
               }
 

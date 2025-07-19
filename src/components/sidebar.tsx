@@ -35,8 +35,12 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
 
   useEffect(() => {
     if (resetTrigger !== undefined) {
-      setFormValues(defaultValues);
-      onFormChange(defaultValues);
+      const newValues = {
+        ...defaultValues,
+        ...initialValues,
+      };
+      setFormValues(newValues);
+      onFormChange(newValues);
     }
   }, [resetTrigger]);
 
