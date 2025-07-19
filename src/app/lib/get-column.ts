@@ -60,18 +60,18 @@ export function getColumn2(rng: seedrandom.PRNG, index: number, cellCount: numbe
     const result: Partial<Segment> = { length: 0, type: chunk.type };
     if (i + 1 === chunks.length) {
       // last one
-      result.length = Math.max(1, cellCount - total);
+      result.length = Math.max(2, cellCount - total);
       if (chunk.type === 'board') {
         result.start = randPoint();
       }
     } else if (i === 0) {
       // first one
-      result.length = Math.max(1, Math.floor(cellCount * (chunk.length / totalLength)));
+      result.length = Math.max(2, Math.floor(cellCount * (chunk.length / totalLength)));
       if (chunk.type === 'board') {
         result.end = randPoint();
       }
     } else {
-      result.length = Math.max(1, Math.floor(cellCount * (chunk.length / totalLength)));
+      result.length = Math.max(2, Math.floor(cellCount * (chunk.length / totalLength)));
       if (chunk.type === 'board') {
         result.start = randPoint();
         result.end = randPoint();
