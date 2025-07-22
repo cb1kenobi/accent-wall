@@ -93,6 +93,9 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
           height="100%"
           viewBox={`0 0 ${width} ${height}`}
           className="border-2 border-gray-300"
+          style={{
+            maxWidth: '1024px'
+          }}
           xmlns="http://www.w3.org/2000/svg">
           <rect
             x="0"
