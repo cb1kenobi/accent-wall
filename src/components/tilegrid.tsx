@@ -56,7 +56,7 @@ export function TileGrid({ grid, onFill, onTileClick }: {
       const isInputFocused = activeElement && (
         activeElement.tagName === 'INPUT' ||
         activeElement.tagName === 'TEXTAREA' ||
-        activeElement.contentEditable === 'true'
+        (activeElement instanceof HTMLElement && activeElement.contentEditable === 'true')
       );
 
       if (isInputFocused) {
