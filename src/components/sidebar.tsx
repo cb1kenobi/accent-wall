@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 interface SidebarProps {
   onFormChange: (formValues: FormValues) => void;
   resetTrigger?: number;
-  initialValues?: FormValues; // Add this prop
+  initialValues: FormValues;
 }
 
 export interface FormValues {
@@ -19,24 +19,11 @@ export interface FormValues {
 }
 
 export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarProps) {
-  const defaultValues: FormValues = {
-    name: 'Untitled',
-    width: 153.25,
-    height: 96,
-    spacing: 0.75,
-    boardWidth: 2.5,
-    rows: 24
-  };
-
-  const [formValues, setFormValues] = useState<FormValues>({
-    ...defaultValues,
-    ...initialValues,
-  });
+  const [formValues, setFormValues] = useState<FormValues>(initialValues);
 
   useEffect(() => {
     if (resetTrigger !== undefined) {
       const newValues = {
-        ...defaultValues,
         ...initialValues,
       };
       setFormValues(newValues);
@@ -51,6 +38,12 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
     }
   }, [initialValues]);
 
+  const onNameFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (e.target.value === 'Untitled') {
+      e.target.select();
+    }
+  };
+
   const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     const newValues = { ...formValues, name: value };
@@ -60,13 +53,19 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const numValue = parseFloat(value) || 0;
+    const numValue = parseFloat(value);
     const newValues = {
       ...formValues,
-      [name]: name === 'rows' ? Math.max(numValue, 15) : Math.max(numValue, 0.125)
+      [name]: isNaN(numValue) ? '' : name === 'rows' ? Math.max(numValue, 15) : Math.max(numValue, 0.125)
     };
     setFormValues(newValues);
-    onFormChange(newValues);
+    if (!isNaN(numValue)) {
+      onFormChange(newValues);
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    onFormChange(formValues);
   };
 
   return (
@@ -79,6 +78,8 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             id="name"
             name="name"
             value={formValues.name}
+            onFocus={onNameFocus}
+            onBlur={handleBlur}
             onChange={onNameChange}
             className="border rounded px-2 py-1"
             autoComplete="off"
@@ -94,6 +95,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             name="rows"
             min={15}
             value={formValues.rows}
+            onBlur={handleBlur}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
           />
@@ -107,6 +109,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             name="width"
             min={1}
             value={formValues.width}
+            onBlur={handleBlur}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
           />
@@ -120,6 +123,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             name="height"
             min={1}
             value={formValues.height}
+            onBlur={handleBlur}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
           />
@@ -133,6 +137,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             name="spacing"
             min={0}
             value={formValues.spacing}
+            onBlur={handleBlur}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
           />
@@ -146,6 +151,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             name="boardWidth"
             min={0.75}
             value={formValues.boardWidth}
+            onBlur={handleBlur}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
           />

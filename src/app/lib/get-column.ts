@@ -78,10 +78,6 @@ export function getColumn2(rng: seedrandom.PRNG, index: number, cellCount: numbe
       }
     }
 
-    if (index === 23) {
-      console.log(result);
-    }
-
     segments.push(result as Segment);
     i++;
     total += result.length;

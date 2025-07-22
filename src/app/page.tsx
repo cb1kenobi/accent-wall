@@ -17,8 +17,19 @@ function numberOfBoards(width: number, spacing: number, boardWidth: number) {
 }
 
 export default function Home() {
-  const [columns, setColumns] = useState(24);
-  const [formValues, setFormValues] = useState<FormValues | null>(null);
+  const [formValues, setFormValues] = useState<FormValues>({
+    name: 'Untitled',
+    width: 153.25,
+    height: 96,
+    spacing: 0.75,
+    boardWidth: 2.5,
+    rows: 24
+  });
+  const [columns, setColumns] = useState(numberOfBoards(
+    formValues.width,
+    formValues.spacing,
+    formValues.boardWidth
+  ));
   const [designId, setDesignId] = useState<string | undefined>(undefined);
   const [grid, setGrid] = useState<Grid | null>(null);
   const [seed, setSeed] = useState<number | null>(null);
@@ -27,32 +38,55 @@ export default function Home() {
   const [loadingDesigns, setLoadingDesigns] = useState(false);
   const [resetTrigger, setResetTrigger] = useState<number>(0);
 
-  const handleGrid = (rowCount: number) => {
-    if (seed && formValues?.rows) {
+  const handleGrid = (rowCount: number, seed: number | null) => {
+    if (seed && rowCount) {
       setGrid(generateGrid(seed, columns, rowCount));
     }
   };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const seedParam = params.get('seed');
-    if (seedParam) {
-      setSeed(parseInt(seedParam, 10));
-    } else {
-      setSeed(Math.floor(Math.random() * 1000000));
-    }
-    formValues && handleGrid(formValues.rows);
-  }, [columns]);
+    const designIdParam = params.get('designId');
 
-  const handleFormChange = (formValues: FormValues) => {
-    setFormValues(formValues);
-    const calculatedColumns = numberOfBoards(
-      formValues.width,
-      formValues.spacing,
-      formValues.boardWidth
-    );
-    setColumns(calculatedColumns);
-    handleGrid(formValues.rows);
+    if (designIdParam) {
+      setDesignId(designIdParam);
+      handleLoadDesign(designIdParam);
+    }
+  }, []); // Empty dependency array - runs only once on mount
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const seedParam = params.get('seed');
+    const designIdParam = params.get('designId');
+
+    // Only handle seed logic if there's no designId (to avoid conflicts)
+    if (!designIdParam) {
+      let s = seed;
+      if (seedParam) {
+        setSeed(s = parseInt(seedParam, 10));
+      } else if (!seed) {
+        setSeed(s = Math.floor(Math.random() * 1000000));
+      }
+      handleGrid(formValues.rows, s);
+    }
+  }, [formValues]);
+
+  const handleFormChange = (newFormValues: FormValues) => {
+    if (newFormValues.rows !== formValues.rows
+      || newFormValues.width !== formValues.width
+      || newFormValues.height !== formValues.height
+      || newFormValues.spacing !== formValues.spacing
+      || newFormValues.boardWidth !== formValues.boardWidth
+    ) {
+      const calculatedColumns = numberOfBoards(
+        newFormValues.width,
+        newFormValues.spacing,
+        newFormValues.boardWidth
+      );
+      setColumns(calculatedColumns);
+      handleGrid(newFormValues.rows, seed);
+    }
+    setFormValues(newFormValues);
   };
 
   const handleTileClick = (col: Column, rowIndex: number, tileType: TileType) => {
@@ -135,16 +169,17 @@ export default function Home() {
     const url = new URL(window.location.href);
     url.searchParams.delete('designId');
     url.searchParams.set('seed', newSeed.toString());
-    window.history.replaceState({}, '', url.toString());
+    window.history.pushState({}, '', url.toString());
 
     setSeed(newSeed);
-    formValues && handleGrid(formValues.rows);
+    handleGrid(formValues.rows, newSeed);
   };
 
   const handleLoad = async () => {
     setLoadingDesigns(true);
     try {
       const userDesigns = await getDesignsAction();
+      console.log('userDesigns', userDesigns);
       setDesigns(userDesigns);
       setOpen(true);
     } catch (error) {
@@ -155,7 +190,7 @@ export default function Home() {
     }
   };
 
-  const handleSave = async () => {
+  const doSave = async ({ designId, name }: { designId?: string, name?: string }) => {
     if (!grid || !formValues) {
       alert('No grid to save!');
       return;
@@ -164,6 +199,7 @@ export default function Home() {
     try {
       const data = {
         ...formValues,
+        name: name || formValues.name,
         columns: grid.columns,
         designId,
         seed: grid.seed,
@@ -172,20 +208,53 @@ export default function Home() {
       const newDesignId = await saveDesignAction(data);
       setDesignId(newDesignId);
 
+      // Update the designs state
+      const savedDesign = {
+        designId: newDesignId,
+        name: formValues.name,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const newDesigns = [...designs];
+      const existing = newDesigns.find(design => design.designId === newDesignId);
+      if (existing) {
+        Object.assign(existing, savedDesign);
+      } else {
+        newDesigns.push(savedDesign);
+      }
+
+      console.log('newDesigns', newDesigns);
+      setDesigns(newDesigns);
+
       // Remove seed from URL and replace with designId
       const url = new URL(window.location.origin);
       url.searchParams.delete('seed');
       url.searchParams.set('designId', newDesignId);
-      window.history.replaceState({}, '', url.toString());
+      window.history.pushState({}, '', url.toString());
     } catch (error) {
       console.error('Failed to save design:', error);
       alert('Failed to save design. Please try again.');
     }
   };
 
+  const handleSave = () => doSave({ designId });
+
+  const handleSaveAs = () => {
+    const name = prompt('Enter a name for the new design', `${formValues.name} (copy)`);
+    if (name) {
+      return doSave({ name });
+    }
+  };
+
   const handleLoadDesign = async (designId: string) => {
     try {
       const design = await loadDesignAction(designId);
+      if (!design) {
+        alert('Design not found');
+        handleNew();
+        return;
+      }
 
       // Restore form values
       setFormValues({
@@ -206,29 +275,39 @@ export default function Home() {
       };
       setGrid(restoredGrid);
 
+      setDesignId(designId);
+
       const url = new URL(window.location.origin);
       url.searchParams.delete('seed');
       url.searchParams.set('designId', designId);
-      window.history.replaceState({}, '', url.toString());
+      window.history.pushState({}, '', url.toString());
 
       setOpen(false);
-
     } catch (error) {
       console.error('Failed to load design:', error);
-      alert('Failed to load design. Please try again.');
+      alert('Failed to load design');
+      handleNew();
     }
   };
 
-  const handleDeleteDesign = async (designId: string) => {
+  const handleDeleteDesign = async (deleteDesignId: string) => {
     if (confirm('Are you sure you want to delete this design?')) {
-      await deleteDesignAction(designId);
-      setDesigns(designs.filter((design) => design.designId !== designId));
+      if (designId === deleteDesignId) {
+        setDesignId(undefined);
+        const url = new URL(window.location.origin);
+        url.searchParams.delete('designId');
+        url.searchParams.delete('seed');
+        window.history.pushState({}, '', url.toString());
+      }
+      await deleteDesignAction(deleteDesignId);
+      setDesigns(designs.filter((design) => design.designId !== deleteDesignId));
+      setOpen(false);
     }
   };
 
   return (
     <div className="flex flex-col gap-x-2 h-screen">
-      <Menubar onLoad={handleLoad} onNew={handleNew} onSave={handleSave} />
+      <Menubar designId={designId} onLoad={handleLoad} onNew={handleNew} onSave={handleSave} onSaveAs={handleSaveAs} />
 
       <div className="flex flex-row grow overflow-hidden">
         <div className="flex flex-col gap-y-6 sticky top-2 p-2 overflow-y-auto">

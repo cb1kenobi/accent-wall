@@ -2,7 +2,7 @@
 
 import type { Grid } from '@/app/lib/generate-grid';
 import type { Column } from '@/app/lib/get-column';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const tileTypes = {
   'blank': (
@@ -49,20 +49,60 @@ export function TileGrid({ grid, onFill, onTileClick }: {
 
   const [activeType, setActiveType] = useState<TileType>('blank');
 
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Check if an input field is focused
+      const activeElement = document.activeElement;
+      const isInputFocused = activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.contentEditable === 'true'
+      );
+
+      if (isInputFocused) {
+        return;
+      }
+
+      const keyToType: { [key: string]: TileType } = {
+        '1': 'blank',
+        '2': 'board-up-left',
+        '3': 'board-up-right',
+        '4': 'board',
+        '5': 'board-down-right',
+        '6': 'board-down-left',
+      };
+
+      const tileType = keyToType[event.key];
+      if (tileType) {
+        setActiveType(tileType);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, []);
+
   return (
     <div className="flex flex-row gap-1">
       <div className="flex flex-col bg-gray-700 rounded-sm">
-        {Object.keys(tileTypes).map((type) => (
+        {Object.keys(tileTypes).map((type, idx) => (
           <div
             className={`w-6 h-6 m-2 bg-white text-black ${activeType === type ? 'border-3 border-blue-500' : 'border-1 border-gray-400'} cursor-pointer`}
             key={type}
             onClick={() => setActiveType(type as keyof typeof tileTypes)}
-            title={type}
+            title={`${type}${idx < 7 ? ` (key: ${idx + 1})` : ''}`}
           >
             {tileTypes[type as keyof typeof tileTypes]}
           </div>
         ))}
-        <div className="w-6 h-6 m-2 bg-black text-white border-1 border-gray-400 cursor-pointer text-center text-xs leading-6" onClick={onFill}>
+        <div
+          className="w-6 h-6 m-2 bg-black text-white border-1 border-gray-400 cursor-pointer text-center text-xs leading-6"
+          onClick={onFill}
+          title="Fill entire grid"
+        >
           Fill
         </div>
       </div>

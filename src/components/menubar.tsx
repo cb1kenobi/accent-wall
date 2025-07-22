@@ -1,7 +1,19 @@
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { Button } from './ui/button';
 
-export function Menubar({ onLoad, onNew, onSave }: { onLoad: () => void, onNew: () => void, onSave: () => void }) {
+export function Menubar({
+  designId,
+  onLoad,
+  onNew,
+  onSave,
+  onSaveAs
+}: {
+  designId?: string,
+  onLoad: () => void,
+  onNew: () => void,
+  onSave: () => void,
+  onSaveAs: () => void
+}) {
   const { data: session } = useSession();
 
   return (
@@ -15,6 +27,9 @@ export function Menubar({ onLoad, onNew, onSave }: { onLoad: () => void, onNew: 
         </Button>
         <Button variant="ghost" onClick={onSave} disabled={!session} className="cursor-pointer">
           Save
+        </Button>
+        <Button variant="ghost" onClick={onSaveAs} disabled={!session || !designId} className="cursor-pointer">
+          Save As
         </Button>
       </div>
       <div>

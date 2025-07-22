@@ -110,6 +110,7 @@ export async function saveDesignAction(data: Design) {
   }
 
   if (data.designId) {
+    console.log('updating design', data.designId, data.name);
     await db.update(designsTable).set({
       name: data.name,
       data: {
@@ -175,20 +176,26 @@ export async function loadDesignAction(designId: string) {
     throw new Error('Unauthorized');
   }
 
-  const design = await db
-    .select({
-      designId: designsTable.designId,
-      name: designsTable.name,
-      data: designsTable.data,
-      createdAt: designsTable.createdAt,
-      updatedAt: designsTable.updatedAt,
-    })
-    .from(designsTable)
-    .where(and(eq(designsTable.designId, designId), eq(designsTable.email, session.user.email)))
-    .limit(1);
+  let design;
+
+  try {
+    design = await db
+      .select({
+        designId: designsTable.designId,
+        name: designsTable.name,
+        data: designsTable.data,
+        createdAt: designsTable.createdAt,
+        updatedAt: designsTable.updatedAt,
+      })
+      .from(designsTable)
+      .where(and(eq(designsTable.designId, designId), eq(designsTable.email, session.user.email)))
+      .limit(1);
+  } catch {
+    return null;
+  }
 
   if (!design.length) {
-    throw new Error('Design not found');
+    return null;
   }
 
   const {
