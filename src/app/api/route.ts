@@ -96,16 +96,6 @@ export async function GET(request: Request) {
     return r;
   });
 
-  console.log(JSON.stringify({
-    seed,
-    numberOfBoards,
-    width,
-	  height,
-    boardSpacing,
-    boardWidth,
-    // boards
-  }, null, 2));
-
   const svg = `<svg
     width="1024"
     height="${1024 * (height/width)}"

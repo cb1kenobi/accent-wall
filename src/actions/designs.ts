@@ -110,7 +110,6 @@ export async function saveDesignAction(data: Design) {
   }
 
   if (data.designId) {
-    console.log('updating design', data.designId, data.name);
     await db.update(designsTable).set({
       name: data.name,
       data: {

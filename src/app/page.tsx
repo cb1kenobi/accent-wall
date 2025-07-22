@@ -179,7 +179,6 @@ export default function Home() {
     setLoadingDesigns(true);
     try {
       const userDesigns = await getDesignsAction();
-      console.log('userDesigns', userDesigns);
       setDesigns(userDesigns);
       setOpen(true);
     } catch (error) {
@@ -224,7 +223,6 @@ export default function Home() {
         newDesigns.push(savedDesign);
       }
 
-      console.log('newDesigns', newDesigns);
       setDesigns(newDesigns);
 
       // Remove seed from URL and replace with designId
