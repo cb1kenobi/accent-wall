@@ -39,6 +39,18 @@ export default function Home() {
   const [designs, setDesigns] = useState<any[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(false);
   const [resetTrigger, setResetTrigger] = useState<number>(0);
+  // Add undo buffer state to store last 50 grid states
+  const [undoBuffer, setUndoBuffer] = useState<Grid[]>([]);
+
+  // Helper function to save current grid state to undo buffer
+  const saveToUndoBuffer = useCallback((currentGrid: Grid) => {
+    console.log('saving to undo buffer');
+    setUndoBuffer(prevBuffer => {
+      const newBuffer = [currentGrid, ...prevBuffer];
+      // Keep only the last 50 states
+      return newBuffer.slice(0, 50);
+    });
+  }, []);
 
   const handleGrid = (rowCount: number, seed: number | null) => {
     if (seed && rowCount) {
@@ -63,6 +75,7 @@ export default function Home() {
       }
       handleGrid(formValues.rows, s);
     }
+    setUndoBuffer([]);
   }, []);
 
   const handleFormChange = (newFormValues: FormValues) => {
@@ -88,9 +101,16 @@ export default function Home() {
       return;
     }
 
-    const newGrid = {
+    // Save current grid state to undo buffer before making changes
+    saveToUndoBuffer(grid);
+
+    const newGrid: Grid = {
       ...grid,
-      columns: [...grid.columns],
+      columns: grid.columns.map(column => ({
+        ...column,
+        segments: column.segments.map(segment => ({ ...segment })),
+        tiles: [...column.tiles]
+      }))
     };
     delete newGrid.seed;
 
@@ -130,7 +150,7 @@ export default function Home() {
 
     column.segments = segments;
     setGrid(newGrid);
-  }, [grid]);
+  }, [grid, saveToUndoBuffer]);
 
   const handleFill = (type: 'space' | 'board') => {
     if (!confirm('Are you sure you want to fill the grid?')) {
@@ -138,9 +158,16 @@ export default function Home() {
     }
 
     if (grid) {
-      const newGrid = {
+      // Save current grid state to undo buffer before making changes
+      saveToUndoBuffer(grid);
+
+      const newGrid: Grid = {
         ...grid,
-        columns: [...grid.columns],
+        columns: grid.columns.map(column => ({
+          ...column,
+          segments: column.segments.map(segment => ({ ...segment })),
+          tiles: [...column.tiles]
+        }))
       };
       for (const column of newGrid.columns) {
         column.tiles = Array(column.tiles.length).fill(type);
@@ -156,6 +183,22 @@ export default function Home() {
     }
   };
 
+  const handleUndo = () => {
+    if (!grid || undoBuffer.length === 0) {
+      return;
+    }
+
+    // Get the most recent state from the undo buffer
+    const previousGrid = undoBuffer[0];
+    const remainingBuffer = undoBuffer.slice(1);
+
+    // Update the undo buffer (remove the restored state)
+    setUndoBuffer(remainingBuffer);
+
+    // Restore the previous grid state
+    setGrid(previousGrid);
+  };
+
   const handleNew = () => {
     setDesignId(undefined);
     setResetTrigger(prev => prev + 1);
@@ -169,6 +212,7 @@ export default function Home() {
     setSeed(newSeed);
     setFormValues(defaultFormValues);
     handleGrid(defaultFormValues.rows, newSeed);
+    setUndoBuffer([]);
   };
 
   const handleLoad = async () => {
@@ -317,7 +361,7 @@ export default function Home() {
 
         <div className="flex flex-col gap-y-2 p-2 overflow-y-auto flex-1 print-container">
           <div className="no-print">
-            {grid && <TileGrid grid={grid} onFill={handleFill} onTileClick={handleTileClick} />}
+            {grid && <TileGrid grid={grid} onFill={handleFill} onTileClick={handleTileClick} onUndo={handleUndo} />}
           </div>
           {grid && formValues && <Preview grid={grid} formValues={formValues} />}
         </div>

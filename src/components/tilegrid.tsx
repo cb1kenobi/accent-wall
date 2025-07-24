@@ -38,10 +38,11 @@ const tileTypes = {
 
 export type TileType = keyof typeof tileTypes;
 
-export function TileGrid({ grid, onFill, onTileClick }: {
+export function TileGrid({ grid, onFill, onTileClick, onUndo }: {
   grid?: Grid | null;
   onFill: (type: 'space' | 'board') => void;
   onTileClick: (col: Column, rowIndex: number, tileType: TileType) => void;
+  onUndo: () => void;
 }) {
   if (!grid) {
     return null;
@@ -49,6 +50,7 @@ export function TileGrid({ grid, onFill, onTileClick }: {
 
   const [activeType, setActiveType] = useState<TileType>('space');
   const [isDragging, setIsDragging] = useState(false);
+  const [lastClickedTile, setLastClickedTile] = useState<{col: number, row: number} | null>(null);
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -81,6 +83,7 @@ export function TileGrid({ grid, onFill, onTileClick }: {
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      setLastClickedTile(null);
     };
 
     document.addEventListener('keydown', handleKeyPress);
@@ -94,12 +97,17 @@ export function TileGrid({ grid, onFill, onTileClick }: {
 
   const handleTileMouseDown = (col: Column, rowIndex: number) => {
     setIsDragging(true);
+    setLastClickedTile({col: col.index, row: rowIndex});
     onTileClick(col, rowIndex, activeType);
   };
 
   const handleTileMouseEnter = (col: Column, rowIndex: number) => {
     if (isDragging) {
-      onTileClick(col, rowIndex, activeType);
+      // Only trigger if we're dragging to a different tile
+      if (!lastClickedTile || lastClickedTile.col !== col.index || lastClickedTile.row !== rowIndex) {
+        setLastClickedTile({col: col.index, row: rowIndex});
+        onTileClick(col, rowIndex, activeType);
+      }
     }
   };
 
@@ -117,18 +125,25 @@ export function TileGrid({ grid, onFill, onTileClick }: {
           </div>
         ))}
         <div
-          className="w-6 h-6 m-2 bg-white text-black border-1 border-gray-400 cursor-pointer text-center text-xs leading-6"
+          className="w-6 h-6 m-2 bg-white text-black border-1 border-gray-400 cursor-pointer text-center text-xs leading-6 select-none"
           onClick={() => onFill('space')}
           title="Fill entire grid with spaces"
         >
           Fill
         </div>
         <div
-          className="w-6 h-6 m-2 bg-black text-white border-1 border-gray-400 cursor-pointer text-center text-xs leading-6"
+          className="w-6 h-6 m-2 bg-black text-white border-1 border-gray-400 cursor-pointer text-center text-xs leading-6 select-none"
           onClick={() => onFill('board')}
           title="Fill entire grid with boards"
         >
           Fill
+        </div>
+        <div
+          className="w-6 h-6 m-2 bg-slate-500 text-white border-1 border-gray-400 cursor-pointer text-center text-xs leading-6 select-none"
+          onClick={() => onUndo()}
+          title="Undo last action"
+        >
+          ↶
         </div>
       </div>
       <div className="p-1 flex flex-row gap-x-1 bg-gray-200">
@@ -162,7 +177,6 @@ export function TileGrid({ grid, onFill, onTileClick }: {
                     width: '16px',
                   }}
                   className={`aspect-square ${doesTileMakeSense ? 'text-black' : 'text-red-500'} hover:text-blue-600 hover:border-blue-600 hover:border-2 transition-colors border-1  border-gray-400 cursor-pointer select-none`}
-                  onClick={() => onTileClick(col, rowIndex, activeType)}
                   onMouseDown={() => handleTileMouseDown(col, rowIndex)}
                   onMouseEnter={() => handleTileMouseEnter(col, rowIndex)}
                   onDragStart={(e) => e.preventDefault()}
