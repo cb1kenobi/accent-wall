@@ -254,7 +254,7 @@ function generateTiles(segments: Segment[]): string[] {
       }
     } else {
       for (let i = 0; i < segment.length; i++) {
-        tiles.push('blank');
+        tiles.push('space');
       }
     }
   }

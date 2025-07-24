@@ -48,9 +48,6 @@ export function Info({ grid, formValues }: { grid: Grid, formValues: FormValues 
     eightFootBoardsNeeded++; // Count the last partial board if used
   }
 
-  const boardsPerSheet = Math.floor(48.125 / (boardWidth + 0.125));
-  const sheetsNeeded = Math.ceil(eightFootBoardsNeeded / boardsPerSheet);
-
   return (
     <div className="text-xs">
       <h4 className="text-lg font-bold">Info</h4>

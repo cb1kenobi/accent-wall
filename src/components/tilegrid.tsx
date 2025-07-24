@@ -5,7 +5,7 @@ import type { Column } from '@/app/lib/get-column';
 import React, { useState, useEffect } from 'react';
 
 const tileTypes = {
-  'blank': (
+  'space': (
     <svg key="5" viewBox="0 0 100 100" className="w-full h-full">
     </svg>
   ),
@@ -40,14 +40,15 @@ export type TileType = keyof typeof tileTypes;
 
 export function TileGrid({ grid, onFill, onTileClick }: {
   grid?: Grid | null;
-  onFill: () => void;
+  onFill: (type: 'space' | 'board') => void;
   onTileClick: (col: Column, rowIndex: number, tileType: TileType) => void;
 }) {
   if (!grid) {
     return null;
   }
 
-  const [activeType, setActiveType] = useState<TileType>('blank');
+  const [activeType, setActiveType] = useState<TileType>('space');
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -64,7 +65,7 @@ export function TileGrid({ grid, onFill, onTileClick }: {
       }
 
       const keyToType: { [key: string]: TileType } = {
-        '1': 'blank',
+        '1': 'space',
         '2': 'board-up-left',
         '3': 'board-up-right',
         '4': 'board',
@@ -78,30 +79,54 @@ export function TileGrid({ grid, onFill, onTileClick }: {
       }
     };
 
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
     document.addEventListener('keydown', handleKeyPress);
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
 
+  const handleTileMouseDown = (col: Column, rowIndex: number) => {
+    setIsDragging(true);
+    onTileClick(col, rowIndex, activeType);
+  };
+
+  const handleTileMouseEnter = (col: Column, rowIndex: number) => {
+    if (isDragging) {
+      onTileClick(col, rowIndex, activeType);
+    }
+  };
+
   return (
     <div className="flex flex-row gap-1">
-      <div className="flex flex-col bg-gray-700 rounded-sm">
+      <div className="flex flex-col bg-gray-800 rounded-sm">
         {Object.keys(tileTypes).map((type, idx) => (
           <div
             className={`w-6 h-6 m-2 bg-white text-black ${activeType === type ? 'border-3 border-blue-500' : 'border-1 border-gray-400'} cursor-pointer`}
             key={type}
             onClick={() => setActiveType(type as keyof typeof tileTypes)}
-            title={`${type}${idx < 7 ? ` (key: ${idx + 1})` : ''}`}
+            title={`${type}${idx < 7 ? ` (hotkey: ${idx + 1})` : ''}`}
           >
             {tileTypes[type as keyof typeof tileTypes]}
           </div>
         ))}
         <div
+          className="w-6 h-6 m-2 bg-white text-black border-1 border-gray-400 cursor-pointer text-center text-xs leading-6"
+          onClick={() => onFill('space')}
+          title="Fill entire grid with spaces"
+        >
+          Fill
+        </div>
+        <div
           className="w-6 h-6 m-2 bg-black text-white border-1 border-gray-400 cursor-pointer text-center text-xs leading-6"
-          onClick={onFill}
-          title="Fill entire grid"
+          onClick={() => onFill('board')}
+          title="Fill entire grid with boards"
         >
           Fill
         </div>
@@ -120,11 +145,11 @@ export function TileGrid({ grid, onFill, onTileClick }: {
               let doesTileMakeSense = true;
               if (lastTile === null) {
                 // do nothing
-              } else if (lastTile === 'blank') {
+              } else if (lastTile === 'space') {
                 doesTileMakeSense = currentTile === 'board-down-left' || currentTile === 'board-down-right' ? false : true;
               } else if (lastTile === 'board' && (currentTile === 'board-up-left' || currentTile === 'board-up-right')) {
                 doesTileMakeSense = false;
-              } else if ((lastTile === 'board-down-left' || lastTile === 'board-down-right') && currentTile !== 'blank') {
+              } else if ((lastTile === 'board-down-left' || lastTile === 'board-down-right') && currentTile !== 'space') {
                 doesTileMakeSense = false;
               } else if ((lastTile === 'board-up-left' || lastTile === 'board-up-right') && (currentTile !== 'board' && currentTile !== 'board-down-left' && currentTile !== 'board-down-right')) {
                 doesTileMakeSense = false;
@@ -136,8 +161,11 @@ export function TileGrid({ grid, onFill, onTileClick }: {
                   style={{
                     width: '16px',
                   }}
-                  className={`aspect-square ${doesTileMakeSense ? 'text-black' : 'text-red-500'} hover:text-blue-600 hover:border-blue-600 hover:border-2 transition-colors border-1  border-gray-400 cursor-pointer`}
+                  className={`aspect-square ${doesTileMakeSense ? 'text-black' : 'text-red-500'} hover:text-blue-600 hover:border-blue-600 hover:border-2 transition-colors border-1  border-gray-400 cursor-pointer select-none`}
                   onClick={() => onTileClick(col, rowIndex, activeType)}
+                  onMouseDown={() => handleTileMouseDown(col, rowIndex)}
+                  onMouseEnter={() => handleTileMouseEnter(col, rowIndex)}
+                  onDragStart={(e) => e.preventDefault()}
                 >
                   {tile}
                 </div>

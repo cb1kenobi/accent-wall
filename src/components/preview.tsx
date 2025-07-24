@@ -36,11 +36,12 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
   const tileHeight = (height - (baseboardHeight + 0.75 + 0.75)) / rowCount;
 
   const boardsMap: Record<string, Board> = {};
+  const boardQuantitiesByLength: Record<number, number> = {};
   let columnId = 0;
   for (const column of columns) {
     for (const segment of column.segments) {
       if (segment.type === 'board') {
-		    const length = segment.length * tileHeight;
+		    const length = Math.round(segment.length * tileHeight * 1000) / 1000;
         const key = `${length}-${segment.start}-${segment.end}`;
         if (!boardsMap[key]) {
           boardsMap[key] = {
@@ -51,6 +52,12 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
           };
         } else {
           boardsMap[key].columns.push(columnId);
+        }
+
+        if (!boardQuantitiesByLength[length]) {
+          boardQuantitiesByLength[length] = 1;
+        } else {
+          boardQuantitiesByLength[length]++;
         }
 	    }
     }
@@ -83,10 +90,24 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
   const extra = 1;
   const boardsPerSheet = Math.floor((48 + kerf - extra) / (boardWidth + kerf));
   const sheetsNeeded = Math.ceil(cutlist.length / boardsPerSheet);
+  const distinctBoards = Object.values(boardsMap).sort((a, b) => b.length - a.length);
+  const sideGaps = (width - (columnCount * boardWidth) - ((columnCount - 1) * spacing)) / 2;
 
   return (
     <div className="pb-2">
-      <h4 className="text-lg font-bold">Preview</h4>
+      <div className="print-only">
+        <h4 className="text-lg font-bold">{formValues.name}</h4>
+        <div className="text-xs">
+          <div><label className="w-10 font-bold">Rows:</label> {rowCount}</div>
+          <div><label className="w-10 font-bold">Columns:</label> {columnCount}</div>
+          <div><label className="w-10 font-bold">Width:</label> {width}"</div>
+          <div><label className="w-10 font-bold">Height:</label> {height}"</div>
+          <div><label className="w-10 font-bold">Board Spacing:</label> {spacing}"</div>
+          <div><label className="w-10 font-bold">Board Width:</label> {boardWidth}"</div>
+          <div><label className="w-10 font-bold">Side Gaps:</label> {sideGaps}"</div>
+        </div>
+      </div>
+      <h4 className="text-lg font-bold no-print">Preview</h4>
       <div className="p-1">
         <svg
           width="100%"
@@ -123,13 +144,13 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
 
                 const box = [
                   // top left
-                  { x: left + (i * (boardWidth + spacing)), y: top - (segment.start === 'left' ? boardWidth : 0) },
+                  { x: left + (i * (boardWidth + spacing)), y: top + (segment.start === 'right' ? boardWidth : 0) },
                   // bottom left
                   { x: left + (i * (boardWidth + spacing)), y: top + (segment.length * tileHeight) - (segment.end === 'right' ? boardWidth : 0) },
                   // bottom right
                   { x: left + (i * (boardWidth + spacing)) + boardWidth, y: top + (segment.length * tileHeight) - (segment.end === 'left' ? boardWidth : 0) },
                   // top right
-                  { x: left + (i * (boardWidth + spacing)) + boardWidth, y: top - (segment.start === 'right' ? boardWidth : 0) },
+                  { x: left + (i * (boardWidth + spacing)) + boardWidth, y: top + (segment.start === 'left' ? boardWidth : 0) },
                 ];
 
                 return (
@@ -172,6 +193,8 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
         <div><label className="w-10 font-bold">Sheets needed:</label> {sheetsNeeded}</div>
         <div><label className="w-10 font-bold">Blade kerf:</label> {kerf}"</div>
       </div>
+
+      <h4 className="text-lg font-bold mt-2">Board by Strip</h4>
       {cutlist.map((board, i) => {
         let left = 0;
         return (
@@ -184,7 +207,8 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
               preserveAspectRatio="xMinYMid"
               viewBox="0 0 1024 30"
             >
-              <rect x="0" y="0" width="100%" height="100%" fill="white" />
+              <rect x="0" y="0" width="100%" height="100%" fill="white" stroke="#ccc" strokeWidth="1" />
+
               {board.chunks.map((chunk, j) => {
                 const percentage = (chunk.length / 96) * 100;
                 const x = left;
@@ -210,6 +234,43 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
                 );
               })}
             </svg>
+          </div>
+        );
+      })}
+
+      <h4 className="text-lg font-bold mt-2">Distinct Boards</h4>
+      {distinctBoards.map((board, i) => {
+        const percentage = (board.length / 96) * 100;
+        return (
+          <div key={`board-${i}`}>
+            {(i === 0 || distinctBoards[i - 1].length !== board.length) ? (
+              <div className="px-2 py-1">
+                {board.length}"
+                <span className="pl-2 text-xs text-gray-500">({boardQuantitiesByLength[board.length]} total)</span><br/>
+              </div>
+            ) : null}
+            <div className="px-2 py-1 w-full">
+                <svg width="100%" height="30">
+                  <rect x="0" y="0" width={Math.max(percentage / 100 * 1024, 300)} height="100%" fill="white" stroke="#ccc" strokeWidth="1"/>
+                  <g>
+                    <path
+                      d={`M ${(board.start === 'left' ? 30 : 0)} 0
+                          L ${percentage / 100 * 1024 - (board.end === 'left' ? 30 : 0)} 0
+                          L ${percentage / 100 * 1024 - (board.end === 'right' ? 30 : 0)} 30
+                          L ${(board.start === 'right' ? 30 : 0)} 30 Z`}
+                      fill='#999'
+                    />
+                    <text
+                      x="30"
+                      y="50%"
+                      fill="black"
+                      fontSize="14"
+                      dominantBaseline="middle"
+                      textAnchor="left"
+                    >{board.length}" (qty {board.columns.length}, cols {board.columns.map(c => c + 1).join(', ')})</text>
+                  </g>
+                </svg>
+            </div>
           </div>
         );
       })}

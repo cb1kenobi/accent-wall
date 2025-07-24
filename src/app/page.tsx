@@ -3,7 +3,7 @@
 import { Preview } from '@/components/preview';
 import { Sidebar, type FormValues } from '@/components/sidebar';
 import { TileGrid, TileType } from '@/components/tilegrid';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { generateGrid, type Grid } from '@/app/lib/generate-grid';
 import { Info } from '@/components/info';
 import { Column, type Segment } from './lib/get-column';
@@ -16,15 +16,17 @@ function numberOfBoards(width: number, spacing: number, boardWidth: number) {
   return Math.floor((width + spacing) / (boardWidth + spacing));
 }
 
+const defaultFormValues: FormValues = {
+  name: 'Untitled',
+  width: 153.25,
+  height: 96,
+  spacing: 0.75,
+  boardWidth: 2.5,
+  rows: 24
+};
+
 export default function Home() {
-  const [formValues, setFormValues] = useState<FormValues>({
-    name: 'Untitled',
-    width: 153.25,
-    height: 96,
-    spacing: 0.75,
-    boardWidth: 2.5,
-    rows: 24
-  });
+  const [formValues, setFormValues] = useState<FormValues>(defaultFormValues);
   const [columns, setColumns] = useState(numberOfBoards(
     formValues.width,
     formValues.spacing,
@@ -46,21 +48,13 @@ export default function Home() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const seedParam = params.get('seed');
     const designIdParam = params.get('designId');
 
     if (designIdParam) {
       setDesignId(designIdParam);
       handleLoadDesign(designIdParam);
-    }
-  }, []); // Empty dependency array - runs only once on mount
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const seedParam = params.get('seed');
-    const designIdParam = params.get('designId');
-
-    // Only handle seed logic if there's no designId (to avoid conflicts)
-    if (!designIdParam) {
+    } else {
       let s = seed;
       if (seedParam) {
         setSeed(s = parseInt(seedParam, 10));
@@ -69,7 +63,7 @@ export default function Home() {
       }
       handleGrid(formValues.rows, s);
     }
-  }, [formValues]);
+  }, []);
 
   const handleFormChange = (newFormValues: FormValues) => {
     if (newFormValues.rows !== formValues.rows
@@ -89,7 +83,7 @@ export default function Home() {
     setFormValues(newFormValues);
   };
 
-  const handleTileClick = (col: Column, rowIndex: number, tileType: TileType) => {
+  const handleTileClick = useCallback((col: Column, rowIndex: number, tileType: TileType) => {
     if (!grid) {
       return;
     }
@@ -105,15 +99,16 @@ export default function Home() {
 
     const segments: Segment[] = [];
     let lastType: string | null = null;
+
     for (let i = 0; i < column.tiles.length; i++) {
       const type = column.tiles[i];
-      const thisType = type === 'blank' ? 'blank' : 'board';
+      const thisType = type === 'space' ? 'space' : 'board';
 
       if (thisType === lastType) {
         segments[segments.length - 1].length++;
       } else {
         segments.push({
-          type: type === 'blank' ? 'space' : 'board',
+          type: type === 'space' ? 'space' : 'board',
           length: 1,
         });
       }
@@ -130,14 +125,14 @@ export default function Home() {
         s.end = 'right';
       }
 
-      lastType = type === 'blank' ? type : 'board';
+      lastType = type === 'space' ? 'space' : 'board';
     }
 
     column.segments = segments;
     setGrid(newGrid);
-  };
+  }, [grid]);
 
-  const handleFill = () => {
+  const handleFill = (type: 'space' | 'board') => {
     if (!confirm('Are you sure you want to fill the grid?')) {
       return;
     }
@@ -148,10 +143,10 @@ export default function Home() {
         columns: [...grid.columns],
       };
       for (const column of newGrid.columns) {
-        column.tiles = Array(column.tiles.length).fill('board');
+        column.tiles = Array(column.tiles.length).fill(type);
         column.segments = [
           {
-            type: 'board',
+            type,
             length: column.tiles.length,
           },
         ];
@@ -172,7 +167,8 @@ export default function Home() {
     window.history.pushState({}, '', url.toString());
 
     setSeed(newSeed);
-    handleGrid(formValues.rows, newSeed);
+    setFormValues(defaultFormValues);
+    handleGrid(defaultFormValues.rows, newSeed);
   };
 
   const handleLoad = async () => {
@@ -305,10 +301,12 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-x-2 h-screen">
-      <Menubar designId={designId} onLoad={handleLoad} onNew={handleNew} onSave={handleSave} onSaveAs={handleSaveAs} />
+      <div className="no-print">
+        <Menubar designId={designId} onLoad={handleLoad} onNew={handleNew} onSave={handleSave} onSaveAs={handleSaveAs} />
+      </div>
 
-      <div className="flex flex-row grow overflow-hidden">
-        <div className="flex flex-col gap-y-6 sticky top-2 p-2 overflow-y-auto">
+      <div className="flex flex-row grow overflow-hidden print-container">
+        <div className="flex flex-col gap-y-6 sticky top-2 p-2 overflow-y-auto no-print">
           <Sidebar
             onFormChange={handleFormChange}
             resetTrigger={resetTrigger}
@@ -317,8 +315,10 @@ export default function Home() {
           {grid && formValues && <Info grid={grid} formValues={formValues} />}
         </div>
 
-        <div className="flex flex-col gap-y-2 p-2 overflow-y-auto flex-1">
-          {grid && <TileGrid grid={grid} onFill={handleFill} onTileClick={handleTileClick} />}
+        <div className="flex flex-col gap-y-2 p-2 overflow-y-auto flex-1 print-container">
+          <div className="no-print">
+            {grid && <TileGrid grid={grid} onFill={handleFill} onTileClick={handleTileClick} />}
+          </div>
           {grid && formValues && <Preview grid={grid} formValues={formValues} />}
         </div>
 

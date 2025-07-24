@@ -151,3 +151,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
+
+/* Print styles - Hide UI elements when printing */
+@media print {
+  body {
+    color: black !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-container {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Ensure only the preview content is visible */
+  .print-only-content {
+    display: block !important;
+  }
+}
