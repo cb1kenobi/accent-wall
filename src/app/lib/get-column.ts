@@ -104,14 +104,14 @@ function generateColumnChunks(rng: seedrandom.PRNG): { length: number, type: 'bo
 
 function generateChunk(rng: seedrandom.PRNG, type: 'board' | 'space', i: number, len: number): { length: number, type: 'board' | 'space' } {
   if (type === 'board') {
-    const min = 25;
-    const max = 100;
+    const min = 10;
+    const max = 90;
     return { length: Math.floor(rng() * (max - min + 1)) + min, type };
   }
 
   if (i === 0 || i === len - 1) {
-    const min = 5;
-    const max = 15;
+    const min = 2;
+    const max = 10;
     return { length: Math.floor(rng() * (max - min + 1)) + min, type };
   }
 

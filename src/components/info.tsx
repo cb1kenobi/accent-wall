@@ -8,7 +8,8 @@ export function Info({ grid, formValues }: { grid: Grid, formValues: FormValues 
   const { rowCount, columnCount, columns } = grid;
   const left = (width - (columnCount * boardWidth) - ((columnCount - 1) * spacing)) / 2;
   const baseboardHeight = 5.5;
-  const tileHeight = (height - (baseboardHeight + 0.75 + 0.75)) / rowCount;
+  const startHeight = 0; // 0.75;
+  const tileHeight = (height - (baseboardHeight + startHeight + 0.75)) / rowCount;
 
   const boards: Record<number, number> = {};
   let squareFeet = 0;
@@ -54,6 +55,7 @@ export function Info({ grid, formValues }: { grid: Grid, formValues: FormValues 
       <div><label className="font-bold">Columns:</label> {grid.columnCount}</div>
       <div><label className="font-bold">Rows:</label> {grid.rowCount}</div>
       <div><label className="font-bold">Side gaps:</label> {left}"</div>
+      <div><label className="font-bold">Cell height:</label> {tileHeight.toFixed(3)}"</div>
     </div>
   );
 }

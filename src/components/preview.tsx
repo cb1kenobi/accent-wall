@@ -32,8 +32,8 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
   const { rowCount, columnCount, columns } = grid;
   const left = (width - (columnCount * boardWidth) - ((columnCount - 1) * spacing)) / 2;
   const baseboardHeight = 5.5;
-  const startHeight = 0.75;
-  const tileHeight = (height - (baseboardHeight + 0.75 + 0.75)) / rowCount;
+  const startHeight = 0; // 0.75;
+  const tileHeight = (height - (baseboardHeight + startHeight + 0.75)) / rowCount;
 
   const boardsMap: Record<string, Board> = {};
   const boardQuantitiesByLength: Record<number, number> = {};
@@ -105,6 +105,7 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
           <div><label className="w-10 font-bold">Board Spacing:</label> {spacing}"</div>
           <div><label className="w-10 font-bold">Board Width:</label> {boardWidth}"</div>
           <div><label className="w-10 font-bold">Side Gaps:</label> {sideGaps}"</div>
+          <div><label className="w-10 font-bold">Cell height:</label> {tileHeight.toFixed(3)}"</div>
         </div>
       </div>
       <h4 className="text-lg font-bold no-print">Preview</h4>
