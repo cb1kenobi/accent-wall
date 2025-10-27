@@ -267,7 +267,7 @@ export function Preview({ grid, formValues }: { grid: Grid, formValues: FormValu
                       fill="black"
                       fontSize="14"
                       dominantBaseline="middle"
-                      textAnchor="left"
+                      textAnchor="start"
                     >{board.length}" (qty {board.columns.length}, cols {board.columns.map(c => c + 1).join(', ')})</text>
                   </g>
                 </svg>
