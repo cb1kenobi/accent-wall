@@ -52,9 +52,9 @@ export default function Home() {
     });
   }, []);
 
-  const handleGrid = (rowCount: number, seed: number | null) => {
+  const handleGrid = (rowCount: number, seed: number | null, columnCount?: number) => {
     if (seed && rowCount) {
-      setGrid(generateGrid(seed, columns, rowCount));
+      setGrid(generateGrid(seed, columnCount ?? columns, rowCount));
     }
   };
 
@@ -91,7 +91,7 @@ export default function Home() {
         newFormValues.boardWidth
       );
       setColumns(calculatedColumns);
-      handleGrid(newFormValues.rows, seed);
+      handleGrid(newFormValues.rows, seed, calculatedColumns);
     }
     setFormValues(newFormValues);
   };

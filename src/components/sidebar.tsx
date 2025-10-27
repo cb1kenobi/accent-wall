@@ -20,6 +20,8 @@ export interface FormValues {
 
 export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarProps) {
   const [formValues, setFormValues] = useState<FormValues>(initialValues);
+  // Add local input state for numeric fields
+  const [localInputs, setLocalInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (resetTrigger !== undefined) {
@@ -27,6 +29,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
         ...initialValues,
       };
       setFormValues(newValues);
+      setLocalInputs({}); // Clear local inputs on reset
       onFormChange(newValues);
     }
   }, [resetTrigger]);
@@ -35,6 +38,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
   useEffect(() => {
     if (initialValues) {
       setFormValues(initialValues);
+      setLocalInputs({}); // Clear local inputs when initial values change
     }
   }, [initialValues]);
 
@@ -53,19 +57,48 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const numValue = parseFloat(value);
-    const newValues = {
-      ...formValues,
-      [name]: isNaN(numValue) ? '' : name === 'rows' ? Math.max(numValue, 15) : Math.max(numValue, 0.125)
-    };
-    setFormValues(newValues);
-    if (!isNaN(numValue)) {
-      onFormChange(newValues);
-    }
+    // Store the raw input value locally
+    setLocalInputs(prev => ({ ...prev, [name]: value }));
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    onFormChange(formValues);
+    const { name } = e.target;
+
+    if (name === 'name') {
+      // Name field already handles its own updates
+      return;
+    }
+
+    // Use the value from localInputs if it exists, otherwise use current form value
+    const inputValue = localInputs[name];
+
+    if (inputValue !== undefined && inputValue !== '') {
+      const numValue = parseFloat(inputValue);
+
+      if (!isNaN(numValue)) {
+        // Apply min constraints based on field type
+        let validatedValue = numValue;
+        if (name === 'rows') {
+          validatedValue = Math.max(numValue, 15);
+        } else {
+          validatedValue = Math.max(numValue, 0.125);
+        }
+
+        const newValues = {
+          ...formValues,
+          [name]: validatedValue
+        };
+        setFormValues(newValues);
+        onFormChange(newValues);
+      }
+    }
+
+    // Clear local input for this field
+    setLocalInputs(prev => {
+      const updated = { ...prev };
+      delete updated[name];
+      return updated;
+    });
   };
 
   return (
@@ -94,7 +127,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             id="rows"
             name="rows"
             min={15}
-            value={formValues.rows}
+            value={localInputs.rows ?? formValues.rows}
             onBlur={handleBlur}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
@@ -108,7 +141,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             id="width"
             name="width"
             min={1}
-            value={formValues.width}
+            value={localInputs.width ?? formValues.width}
             onBlur={handleBlur}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
@@ -122,7 +155,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             id="height"
             name="height"
             min={1}
-            value={formValues.height}
+            value={localInputs.height ?? formValues.height}
             onBlur={handleBlur}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
@@ -136,7 +169,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             id="spacing"
             name="spacing"
             min={0}
-            value={formValues.spacing}
+            value={localInputs.spacing ?? formValues.spacing}
             onBlur={handleBlur}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
@@ -150,7 +183,7 @@ export function Sidebar({ onFormChange, resetTrigger, initialValues }: SidebarPr
             id="boardWidth"
             name="boardWidth"
             min={0.75}
-            value={formValues.boardWidth}
+            value={localInputs.boardWidth ?? formValues.boardWidth}
             onBlur={handleBlur}
             onChange={handleInputChange}
             className="border rounded px-2 py-1"
